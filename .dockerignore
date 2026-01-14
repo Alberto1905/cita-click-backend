@@ -1,0 +1,64 @@
+# Build outputs
+target/
+!target/*.jar
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.metadata
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+mvnw
+mvnw.cmd
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Logs
+*.log
+logs/
+
+# Tests
+src/test/
+*.test.*
+test-results/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Docker - No ignorar estos archivos ya que deben estar en el contexto
+# Dockerfile
+# .dockerignore
+# docker-compose*.yml
+
+# Node (si hay frontend en el mismo repo)
+node_modules/
+npm-debug.log
+yarn-error.log
