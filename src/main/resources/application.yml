@@ -1,0 +1,209 @@
+# ============================================================================
+# APPLICATION CONFIGURATION
+# ============================================================================
+spring:
+  application:
+    name: reservas-backend
+
+  # ============================================================================
+  # DATABASE CONFIGURATION
+  # ============================================================================
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://34.29.36.27:5432/db-cita-click-dev?currentSchema=ccdiad}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:<c9eTj=TG4h%I)Q|}
+    driver-class-name: org.postgresql.Driver
+
+    # Sin HikariCP - Datasource básico gestionado por Hibernate
+    # Para pool de conexiones en producción, usar PgBouncer o similar
+    type: org.springframework.jdbc.datasource.DriverManagerDataSource
+
+  # ============================================================================
+  # JPA / HIBERNATE CONFIGURATION
+  # ============================================================================
+  jpa:
+    # HIBERNATE DDL AUTO - ESTRATEGIA POR ENTORNO
+    # ⚠️ CRÍTICO: No usar 'update' con BD ya inicializada
+    #
+    # VALORES PERMITIDOS:
+    # - validate: RECOMENDADO para dev/prod. Solo valida schema, NO modifica BD
+    # - update: Solo para desarrollo inicial (crea/actualiza tablas). PELIGROSO en prod
+    # - create: Destruye y recrea schema (SOLO para testing)
+    # - create-drop: Igual que create, pero elimina al cerrar (SOLO para tests)
+    # - none: No hace nada (usar con Flyway/Liquibase)
+    #
+    # ESTRATEGIA ACTUAL:
+    # - BD ya existe con datos reales → usar 'validate'
+    # - Cambios de schema → aplicar vía scripts SQL manuales o migraciones
+    # - 'update' genera errores DDL con índices/constraints existentes
+    hibernate:
+      ddl-auto: ${DDL_AUTO:validate}
+
+    # NO mostrar SQL por defecto (habilitar en perfil local/test)
+    show-sql: false
+
+    # Propiedades de Hibernate
+    properties:
+      hibernate:
+        # Dialecto PostgreSQL
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+        # Schema por defecto
+        default_schema: ccdiad
+
+        # NO formatear SQL por defecto (performance)
+        format_sql: false
+
+        # Naming strategy (snake_case para columnas)
+        physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+
+        # Configuración JDBC
+        jdbc:
+          time_zone: America/Mexico_City
+
+    # Open-in-view anti-pattern (desactivado)
+    open-in-view: false
+
+# ============================================================================
+# SERVER CONFIGURATION
+# ============================================================================
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+  # Configuración de compresión
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+
+# ============================================================================
+# LOGGING CONFIGURATION
+# ============================================================================
+logging:
+  level:
+    root: WARN
+    com.reservas: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: ${SQL_LOG_LEVEL:INFO}
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
+
+  file:
+    name: logs/cita-click.log
+    max-size: 10MB
+    max-history: 30
+
+# ============================================================================
+# JWT CONFIGURATION
+# ============================================================================
+jwt:
+  # Secret debe tener mínimo 512 bits (64 caracteres) para HS512
+  secret: ${JWT_SECRET:miClaveSecretaSuperMegaSeguraParaJWT2024ProyectoReservasSaaS12345}
+  expiration: 604800000      # 7 días en milisegundos
+  refresh-expiration: 2592000000  # 30 días en milisegundos
+
+# ============================================================================
+# GOOGLE OAUTH2 CONFIGURATION
+# ============================================================================
+google:
+  client:
+    id: ${GOOGLE_CLIENT_ID}
+
+# ============================================================================
+# STRIPE CONFIGURATION
+# ============================================================================
+stripe:
+  # Clave secreta de Stripe (usada por diferentes servicios)
+  secret:
+    key: ${STRIPE_SECRET_KEY}
+
+  api:
+    key: ${STRIPE_SECRET_KEY}
+
+  webhook:
+    secret: ${STRIPE_WEBHOOK_SECRET}
+
+  success:
+    url: ${FRONTEND_URL:http://localhost:3000}/payment/success
+
+  cancel:
+    url: ${FRONTEND_URL:http://localhost:3000}/payment/cancel
+
+  # Price IDs (crear en Stripe Dashboard)
+  price:
+    basico: ${STRIPE_PRICE_BASICO:price_basico_id}
+    profesional: ${STRIPE_PRICE_PROFESIONAL:price_profesional_id}
+    premium: ${STRIPE_PRICE_PREMIUM:price_premium_id}
+
+# ============================================================================
+# TWILIO CONFIGURATION (SMS y WhatsApp)
+# ============================================================================
+twilio:
+  account:
+    sid: ${TWILIO_ACCOUNT_SID:}
+
+  auth:
+    token: ${TWILIO_AUTH_TOKEN:}
+
+  phone:
+    number: ${TWILIO_PHONE_NUMBER:}
+
+  whatsapp:
+    from: ${TWILIO_WHATSAPP_NUMBER:}
+    number: ${TWILIO_WHATSAPP_NUMBER:}
+
+# ============================================================================
+# SENDGRID CONFIGURATION (Email)
+# ============================================================================
+sendgrid:
+  api:
+    key: ${SENDGRID_API_KEY:}
+
+  from:
+    email: ${SENDGRID_FROM_EMAIL:noreply@tu-dominio.com}
+    name: ${SENDGRID_FROM_NAME:Sistema de Reservas}
+
+# ============================================================================
+# GOOGLE CLOUD PLATFORM (Cloud Storage)
+# ============================================================================
+gcp:
+  project:
+    id: ${GCP_PROJECT_ID:}
+
+  bucket:
+    name: ${GCP_BUCKET_NAME:}
+
+# ============================================================================
+# RATE LIMITING
+# ============================================================================
+rate:
+  limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+
+# ============================================================================
+# FRONTEND URL
+# ============================================================================
+frontend:
+  url: ${FRONTEND_URL:http://localhost:5174}
+
+# ============================================================================
+# ACTUATOR / MONITORING
+# ============================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+  endpoint:
+    health:
+      show-details: when-authorized
+
+  health:
+    db:
+      enabled: true
