@@ -1,6 +1,0 @@
--- ============================================================================
--- SCHEMA H2 - CITA CLICK
--- ============================================================================
--- Las tablas son creadas automáticamente por Hibernate con ddl-auto: create-drop
--- Este archivo está vacío intencionalmente
--- ============================================================================
