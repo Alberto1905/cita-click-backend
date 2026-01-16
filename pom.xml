@@ -62,6 +62,13 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- H2 Database (Temporal para demo con datos de prueba) -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
 		<!-- JWT (JJWT) -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
