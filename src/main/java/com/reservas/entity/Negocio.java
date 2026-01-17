@@ -1,49 +1,78 @@
 package com.reservas.entity;
 
+import com.reservas.entity.base.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Entidad que representa un negocio registrado en el sistema.
+ *
+ * Cada negocio tiene su propio plan de suscripción, usuarios, clientes y servicios.
+ * Maneja el ciclo de vida de suscripción (trial, activo, vencido, suspendido).
+ *
+ * @author Cita Click
+ */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "tbl_negocios", schema = "ccdiad")
+@Table(
+    name = "tbl_negocios",
+    schema = "ccdiad",
+    indexes = {
+        @Index(name = "idx_negocio_email", columnList = "email"),
+        @Index(name = "idx_negocio_stripe_customer_id", columnList = "stripe_customer_id"),
+        @Index(name = "idx_negocio_estado_pago", columnList = "estado_pago"),
+        @Index(name = "idx_negocio_plan", columnList = "plan"),
+        @Index(name = "idx_negocio_cuenta_activa", columnList = "cuenta_activa")
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_negocio_email", columnNames = "email"),
+        @UniqueConstraint(name = "uk_negocio_stripe_customer_id", columnNames = "stripe_customer_id")
+    }
+)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Negocio {
+public class Negocio extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(name = "nombre", nullable = false, length = 200)
     private String nombre;
 
+    @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "email", unique = true, nullable = false, length = 255)
     private String email;
 
+    @Column(name = "telefono", length = 20)
     private String telefono;
 
-    private String tipo; // 'salon', 'clinica', 'masajes', etc.
-
-    private String logoUrl;
+    @Column(name = "tipo", length = 50)
+    private String tipo; // 'salon', 'clinica', 'masajes', 'consultorio', etc.
 
     // Legacy flat address fields (kept for backward compatibility)
+    @Column(name = "domicilio", length = 300)
     private String domicilio;
 
+    @Column(name = "ciudad", length = 100)
     private String ciudad;
 
+    @Column(name = "pais", length = 100)
     private String pais;
 
     // Individual address fields for structured storage
-    @Column(name = "direccion_calle")
+    @Column(name = "direccion_calle", length = 200)
     private String direccionCalle;
 
-    @Column(name = "direccion_colonia")
+    @Column(name = "direccion_colonia", length = 100)
     private String direccionColonia;
 
     @Column(name = "direccion_codigo_postal", length = 10)
@@ -52,54 +81,49 @@ public class Negocio {
     @Column(name = "direccion_estado", length = 100)
     private String direccionEstado;
 
-    @Column(columnDefinition = "varchar(50) default 'trial'")
+    @Column(name = "estado_pago", nullable = false, length = 50, columnDefinition = "varchar(50) default 'trial'")
     @Builder.Default
     private String estadoPago = "trial"; // 'trial', 'activo', 'vencido', 'suspendido'
 
-    @Column(columnDefinition = "varchar(50) default 'basico'")
+    @Column(name = "plan", nullable = false, length = 50, columnDefinition = "varchar(50) default 'basico'")
     @Builder.Default
     private String plan = "basico"; // 'basico', 'profesional', 'premium'
 
+    @Column(name = "fecha_inicio_plan")
     private LocalDateTime fechaInicioPlan;
 
+    @Column(name = "fecha_proximo_cobro")
     private LocalDateTime fechaProximoCobro;
 
     // Stripe Customer ID
-    @Column(name = "stripe_customer_id", unique = true)
+    @Column(name = "stripe_customer_id", unique = true, length = 100)
     private String stripeCustomerId;
 
-    // Nuevos campos para control de suscripción
-    @Column(nullable = false)
+    // Campos para control de suscripción
+    @Column(name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro;
 
+    @Column(name = "fecha_fin_prueba")
     private LocalDateTime fechaFinPrueba;
 
-    @Column(nullable = false)
+    @Column(name = "en_periodo_prueba", nullable = false, columnDefinition = "boolean default true")
     @Builder.Default
     private boolean enPeriodoPrueba = true;
 
-    @Column(nullable = false)
+    @Column(name = "cuenta_activa", nullable = false, columnDefinition = "boolean default true")
     @Builder.Default
     private boolean cuentaActiva = true;
 
-    @Column(nullable = false)
+    @Column(name = "notificacion_prueba_enviada", nullable = false, columnDefinition = "boolean default false")
     @Builder.Default
     private boolean notificacionPruebaEnviada = false;
 
-    @Column(nullable = false)
+    @Column(name = "notificacion_vencimiento_enviada", nullable = false, columnDefinition = "boolean default false")
     @Builder.Default
     private boolean notificacionVencimientoEnviada = false;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-
     @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+    protected void onPrePersist() {
         fechaRegistro = LocalDateTime.now();
         fechaInicioPlan = LocalDateTime.now();
 
@@ -114,11 +138,6 @@ public class Negocio {
             estadoPago = "pendiente_pago";
             cuentaActiva = false;
         }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
     }
 
     // Métodos de utilidad
