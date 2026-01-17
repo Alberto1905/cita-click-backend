@@ -62,7 +62,7 @@ class NegocioServiceTest {
                 .domicilio("Calle Principal 123")
                 .ciudad("CDMX")
                 .pais("México")
-                .plan("professional")
+                .plan("profesional")
                 .estadoPago("active")
                 .build();
 

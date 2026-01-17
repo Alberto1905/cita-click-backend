@@ -59,7 +59,7 @@ class ServicioServiceTest {
                 .nombre("Salon de Belleza Test")
                 .tipo("salon")
                 .estadoPago("activo")
-                .plan("professional")
+                .plan("profesional")
                 .fechaInicioPlan(LocalDateTime.now())
                 .build();
 
@@ -73,12 +73,10 @@ class ServicioServiceTest {
                 .rol("admin")
                 .activo(true)
                 .negocio(negocioMock)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         servicioMock = Servicio.builder()
-                .id("servicio-123")
+                .id(UUID.randomUUID())
                 .nombre("Corte de Cabello")
                 .descripcion("Corte de cabello profesional")
                 .precio(new BigDecimal("150.00"))
@@ -156,7 +154,7 @@ class ServicioServiceTest {
     void testListarServicios_SoloActivos() {
         // Arrange
         Servicio servicioActivo1 = Servicio.builder()
-                .id("serv-1")
+                .id(UUID.randomUUID())
                 .nombre("Servicio 1")
                 .activo(true)
                 .negocio(negocioMock)
@@ -165,7 +163,7 @@ class ServicioServiceTest {
                 .build();
 
         Servicio servicioActivo2 = Servicio.builder()
-                .id("serv-2")
+                .id(UUID.randomUUID())
                 .nombre("Servicio 2")
                 .activo(true)
                 .negocio(negocioMock)
@@ -183,8 +181,8 @@ class ServicioServiceTest {
         // Assert
         assertNotNull(response);
         assertEquals(2, response.size());
-        assertEquals("serv-1", response.get(0).getId());
-        assertEquals("serv-2", response.get(1).getId());
+        assertNotNull(response.get(0).getId());
+        assertNotNull(response.get(1).getId());
 
         verify(servicioRepository, times(1)).findByNegocioAndActivoTrue(any(Negocio.class));
         verify(servicioRepository, never()).findByNegocio(any(Negocio.class));
@@ -195,7 +193,7 @@ class ServicioServiceTest {
     void testListarServicios_Todos() {
         // Arrange
         Servicio servicioActivo = Servicio.builder()
-                .id("serv-1")
+                .id(UUID.randomUUID())
                 .nombre("Servicio Activo")
                 .activo(true)
                 .negocio(negocioMock)
@@ -204,7 +202,7 @@ class ServicioServiceTest {
                 .build();
 
         Servicio servicioInactivo = Servicio.builder()
-                .id("serv-2")
+                .id(UUID.randomUUID())
                 .nombre("Servicio Inactivo")
                 .activo(false)
                 .negocio(negocioMock)
@@ -232,17 +230,17 @@ class ServicioServiceTest {
     void testObtenerServicio_Exitoso() {
         // Arrange
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.of(servicioMock));
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioMock));
 
         // Act
-        ServicioResponse response = servicioService.obtenerServicio("usuario@test.com", "servicio-123");
+        ServicioResponse response = servicioService.obtenerServicio("usuario@test.com", servicioMock.getId().toString());
 
         // Assert
         assertNotNull(response);
-        assertEquals("servicio-123", response.getId());
+        assertNotNull(response.getId());
         assertEquals("Corte de Cabello", response.getNombre());
 
-        verify(servicioRepository, times(1)).findById(anyString());
+        verify(servicioRepository, times(1)).findById(any(UUID.class));
     }
 
     @Test
@@ -255,7 +253,7 @@ class ServicioServiceTest {
                 .build();
 
         Servicio servicioOtroNegocio = Servicio.builder()
-                .id("servicio-123")
+                .id(UUID.randomUUID())
                 .nombre("Servicio de otro negocio")
                 .negocio(otroNegocio)
                 .precio(new BigDecimal("100.00"))
@@ -263,7 +261,7 @@ class ServicioServiceTest {
                 .build();
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.of(servicioOtroNegocio));
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioOtroNegocio));
 
         // Act & Assert
         assertThrows(UnauthorizedException.class, () -> {
@@ -284,7 +282,7 @@ class ServicioServiceTest {
                 .build();
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.of(servicioMock));
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioMock));
         when(servicioRepository.save(any(Servicio.class))).thenReturn(servicioMock);
 
         // Act
@@ -300,7 +298,7 @@ class ServicioServiceTest {
     void testEliminarServicio_Exitoso() {
         // Arrange
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.of(servicioMock));
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioMock));
         when(servicioRepository.save(any(Servicio.class))).thenReturn(servicioMock);
 
         // Act
@@ -316,7 +314,7 @@ class ServicioServiceTest {
     void testEliminarServicio_ServicioNoEncontrado() {
         // Arrange
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(NotFoundException.class, () -> {

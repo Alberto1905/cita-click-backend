@@ -70,7 +70,7 @@ class CitaServiceTest {
                 .nombre("Salon de Belleza Test")
                 .tipo("salon")
                 .estadoPago("activo")
-                .plan("professional")
+                .plan("profesional")
                 .fechaInicioPlan(LocalDateTime.now())
                 .build();
 
@@ -84,12 +84,10 @@ class CitaServiceTest {
                 .rol("admin")
                 .activo(true)
                 .negocio(negocioMock)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         clienteMock = Cliente.builder()
-                .id("cliente-123")
+                .id(UUID.randomUUID())
                 .nombre("María")
                 .apellidoPaterno("González")
                 .apellidoMaterno("López")
@@ -99,7 +97,7 @@ class CitaServiceTest {
                 .build();
 
         servicioMock = Servicio.builder()
-                .id("servicio-123")
+                .id(UUID.randomUUID())
                 .nombre("Corte de Cabello")
                 .descripcion("Corte profesional")
                 .precio(new BigDecimal("150.00"))
@@ -138,8 +136,8 @@ class CitaServiceTest {
     void testCrearCita_Exitoso() {
         // Arrange
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(clienteRepository.findById(anyString())).thenReturn(Optional.of(clienteMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.of(servicioMock));
+        when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.of(clienteMock));
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioMock));
         when(citaRepository.findByNegocioAndFechaHoraBetween(any(), any(), any()))
                 .thenReturn(Collections.emptyList());
         when(citaRepository.save(any(Cita.class))).thenReturn(citaMock);
@@ -155,8 +153,8 @@ class CitaServiceTest {
         assertEquals("servicio-123", response.getServicioId());
 
         verify(usuarioRepository, times(1)).findByEmail(anyString());
-        verify(clienteRepository, times(1)).findById(anyString());
-        verify(servicioRepository, times(1)).findById(anyString());
+        verify(clienteRepository, times(1)).findById(any(UUID.class));
+        verify(servicioRepository, times(1)).findById(any(UUID.class));
         verify(citaRepository, times(1)).save(any(Cita.class));
     }
 
@@ -165,7 +163,7 @@ class CitaServiceTest {
     void testCrearCita_ClienteNoEncontrado() {
         // Arrange
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(clienteRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(NotFoundException.class, () -> {
@@ -180,8 +178,8 @@ class CitaServiceTest {
     void testCrearCita_ServicioNoEncontrado() {
         // Arrange
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(clienteRepository.findById(anyString())).thenReturn(Optional.of(clienteMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.of(clienteMock));
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(NotFoundException.class, () -> {
@@ -196,7 +194,7 @@ class CitaServiceTest {
     void testCrearCita_ServicioInactivo() {
         // Arrange
         Servicio servicioInactivo = Servicio.builder()
-                .id("servicio-123")
+                .id(UUID.randomUUID())
                 .nombre("Servicio Inactivo")
                 .activo(false)
                 .negocio(negocioMock)
@@ -205,8 +203,8 @@ class CitaServiceTest {
                 .build();
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(clienteRepository.findById(anyString())).thenReturn(Optional.of(clienteMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.of(servicioInactivo));
+        when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.of(clienteMock));
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioInactivo));
 
         // Act & Assert
         assertThrows(BadRequestException.class, () -> {
@@ -226,14 +224,14 @@ class CitaServiceTest {
                 .build();
 
         Cliente clienteOtroNegocio = Cliente.builder()
-                .id("cliente-123")
+                .id(UUID.randomUUID())
                 .nombre("Cliente de otro negocio")
                 .apellidoPaterno("Test")
                 .negocio(otroNegocio)
                 .build();
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(clienteRepository.findById(anyString())).thenReturn(Optional.of(clienteOtroNegocio));
+        when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.of(clienteOtroNegocio));
 
         // Act & Assert
         assertThrows(UnauthorizedException.class, () -> {
@@ -256,8 +254,8 @@ class CitaServiceTest {
                 .build();
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(clienteRepository.findById(anyString())).thenReturn(Optional.of(clienteMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.of(servicioMock));
+        when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.of(clienteMock));
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioMock));
         when(citaRepository.findByNegocioAndFechaHoraBetween(any(), any(), any()))
                 .thenReturn(Arrays.asList(citaExistente));
 
@@ -373,7 +371,7 @@ class CitaServiceTest {
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
         when(citaRepository.findById(anyString())).thenReturn(Optional.of(citaMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.of(servicioMock));
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioMock));
         when(citaRepository.findByNegocioAndFechaHoraBetween(any(), any(), any()))
                 .thenReturn(Collections.emptyList());
         when(citaRepository.save(any(Cita.class))).thenReturn(citaMock);
@@ -448,7 +446,7 @@ class CitaServiceTest {
                 .build();
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.of(servicioMock));
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioMock));
         when(diaLibreRepository.findByNegocioAndFecha(any(), any())).thenReturn(Collections.emptyList());
         when(horarioTrabajoRepository.findByNegocioAndDiaSemana(any(), anyInt()))
                 .thenReturn(Arrays.asList(horario));
@@ -479,7 +477,7 @@ class CitaServiceTest {
                 .build();
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.of(servicioMock));
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioMock));
         when(diaLibreRepository.findByNegocioAndFecha(any(), any())).thenReturn(Arrays.asList(diaLibre));
 
         // Act
@@ -500,7 +498,7 @@ class CitaServiceTest {
         LocalDate fecha = LocalDate.of(2024, 1, 15);
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(servicioRepository.findById(anyString())).thenReturn(Optional.of(servicioMock));
+        when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioMock));
         when(diaLibreRepository.findByNegocioAndFecha(any(), any())).thenReturn(Collections.emptyList());
         when(horarioTrabajoRepository.findByNegocioAndDiaSemana(any(), anyInt()))
                 .thenReturn(Collections.emptyList());

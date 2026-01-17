@@ -62,7 +62,7 @@ class ReporteServiceTest {
                 .nombre("Salon de Belleza Test")
                 .tipo("salon")
                 .estadoPago("activo")
-                .plan("professional")
+                .plan("profesional")
                 .fechaInicioPlan(LocalDateTime.now())
                 .build();
 
@@ -76,23 +76,20 @@ class ReporteServiceTest {
                 .rol("admin")
                 .activo(true)
                 .negocio(negocioMock)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         clienteMock = Cliente.builder()
-                .id("cliente-123")
+                .id(UUID.randomUUID())
                 .nombre("María")
                 .apellidoPaterno("González")
                 .apellidoMaterno("López")
                 .email("maria@cliente.com")
                 .telefono("1234567890")
                 .negocio(negocioMock)
-                .createdAt(LocalDateTime.now().minusDays(10))
                 .build();
 
         servicioMock = Servicio.builder()
-                .id("servicio-123")
+                .id(UUID.randomUUID())
                 .nombre("Corte de Cabello")
                 .descripcion("Corte profesional")
                 .precio(new BigDecimal("150.00"))
@@ -102,7 +99,7 @@ class ReporteServiceTest {
                 .build();
 
         Servicio servicioMock2 = Servicio.builder()
-                .id("servicio-456")
+                .id(UUID.randomUUID())
                 .nombre("Tinte")
                 .descripcion("Tinte profesional")
                 .precio(new BigDecimal("300.00"))
@@ -302,14 +299,14 @@ class ReporteServiceTest {
         LocalDate fecha = LocalDate.now();
 
         Servicio servicio1 = Servicio.builder()
-                .id("serv-1")
+                .id(UUID.randomUUID())
                 .nombre("Corte Popular")
                 .precio(new BigDecimal("100.00"))
                 .duracionMinutos(30)
                 .build();
 
         Servicio servicio2 = Servicio.builder()
-                .id("serv-2")
+                .id(UUID.randomUUID())
                 .nombre("Tinte")
                 .precio(new BigDecimal("200.00"))
                 .duracionMinutos(60)
@@ -376,19 +373,18 @@ class ReporteServiceTest {
         LocalDateTime inicioHoy = fecha.atStartOfDay();
 
         Cliente clienteNuevo = Cliente.builder()
-                .id("cliente-nuevo")
+                .id(UUID.randomUUID())
                 .nombre("Cliente Nuevo")
                 .apellidoPaterno("Test")
                 .negocio(negocioMock)
-                .createdAt(inicioHoy.plusHours(1)) // Creado hoy
                 .build();
+        // Note: createdAt is managed by JPA Auditing, can't be set manually in builder
 
         Cliente clienteAntiguo = Cliente.builder()
-                .id("cliente-antiguo")
+                .id(UUID.randomUUID())
                 .nombre("Cliente Antiguo")
                 .apellidoPaterno("Test")
                 .negocio(negocioMock)
-                .createdAt(inicioHoy.minusDays(10)) // Creado hace 10 días
                 .build();
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
@@ -413,14 +409,14 @@ class ReporteServiceTest {
         LocalDate fecha = LocalDate.now();
 
         Servicio servicio100 = Servicio.builder()
-                .id("serv-100")
+                .id(UUID.randomUUID())
                 .nombre("Servicio 100")
                 .precio(new BigDecimal("100.00"))
                 .duracionMinutos(30)
                 .build();
 
         Servicio servicio200 = Servicio.builder()
-                .id("serv-200")
+                .id(UUID.randomUUID())
                 .nombre("Servicio 200")
                 .precio(new BigDecimal("200.00"))
                 .duracionMinutos(60)

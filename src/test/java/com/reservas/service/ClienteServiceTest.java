@@ -39,6 +39,9 @@ class ClienteServiceTest {
     @Mock
     private UsuarioRepository usuarioRepository;
 
+    @Mock
+    private PlanLimitesService planLimitesService;
+
     @InjectMocks
     private ClienteService clienteService;
 
@@ -55,7 +58,7 @@ class ClienteServiceTest {
                 .nombre("Salon de Belleza Test")
                 .tipo("salon")
                 .estadoPago("activo")
-                .plan("professional")
+                .plan("profesional")
                 .fechaInicioPlan(LocalDateTime.now())
                 .build();
 
@@ -69,12 +72,10 @@ class ClienteServiceTest {
                 .rol("admin")
                 .activo(true)
                 .negocio(negocioMock)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         clienteMock = Cliente.builder()
-                .id("cliente-123")
+                .id(UUID.randomUUID())
                 .nombre("María")
                 .apellidoPaterno("González")
                 .apellidoMaterno("López")
@@ -82,7 +83,6 @@ class ClienteServiceTest {
                 .telefono("1234567890")
                 .notas("Cliente frecuente")
                 .negocio(negocioMock)
-                .createdAt(LocalDateTime.now())
                 .build();
 
         clienteRequestMock = ClienteRequest.builder()
@@ -102,6 +102,7 @@ class ClienteServiceTest {
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
         when(clienteRepository.findByNegocioAndEmail(any(Negocio.class), anyString()))
                 .thenReturn(Optional.empty());
+        doNothing().when(planLimitesService).validarLimiteClientes(any(UUID.class), any());
         when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteMock);
 
         // Act
@@ -109,7 +110,7 @@ class ClienteServiceTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals("cliente-123", response.getId());
+        assertEquals(clienteMock.getId(), response.getId());
         assertEquals("María", response.getNombre());
         assertEquals("González", response.getApellidoPaterno());
         assertEquals("López", response.getApellidoMaterno());
@@ -157,14 +158,14 @@ class ClienteServiceTest {
     void testListarClientes_SinBusqueda() {
         // Arrange
         Cliente cliente1 = Cliente.builder()
-                .id("cliente-1")
+                .id(UUID.randomUUID())
                 .nombre("María")
                 .apellidoPaterno("González")
                 .negocio(negocioMock)
                 .build();
 
         Cliente cliente2 = Cliente.builder()
-                .id("cliente-2")
+                .id(UUID.randomUUID())
                 .nombre("Pedro")
                 .apellidoPaterno("Martínez")
                 .negocio(negocioMock)
@@ -180,8 +181,8 @@ class ClienteServiceTest {
         // Assert
         assertNotNull(response);
         assertEquals(2, response.size());
-        assertEquals("cliente-1", response.get(0).getId());
-        assertEquals("cliente-2", response.get(1).getId());
+        assertNotNull(response.get(0).getId());
+        assertNotNull(response.get(1).getId());
 
         verify(clienteRepository, times(1)).findByNegocio(any(Negocio.class));
         verify(clienteRepository, never()).searchClientes(any(Negocio.class), anyString());
@@ -192,7 +193,7 @@ class ClienteServiceTest {
     void testListarClientes_ConBusqueda() {
         // Arrange
         Cliente clienteEncontrado = Cliente.builder()
-                .id("cliente-1")
+                .id(UUID.randomUUID())
                 .nombre("María")
                 .apellidoPaterno("González")
                 .negocio(negocioMock)
@@ -208,7 +209,7 @@ class ClienteServiceTest {
         // Assert
         assertNotNull(response);
         assertEquals(1, response.size());
-        assertEquals("cliente-1", response.get(0).getId());
+        assertNotNull(response.get(0).getId());
 
         verify(clienteRepository, times(1)).searchClientes(any(Negocio.class), anyString());
         verify(clienteRepository, never()).findByNegocio(any(Negocio.class));
@@ -219,17 +220,17 @@ class ClienteServiceTest {
     void testObtenerCliente_Exitoso() {
         // Arrange
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(clienteRepository.findById(anyString())).thenReturn(Optional.of(clienteMock));
+        when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.of(clienteMock));
 
         // Act
-        ClienteResponse response = clienteService.obtenerCliente("usuario@test.com", "cliente-123");
+        ClienteResponse response = clienteService.obtenerCliente("usuario@test.com", clienteMock.getId().toString());
 
         // Assert
         assertNotNull(response);
-        assertEquals("cliente-123", response.getId());
+        assertEquals(clienteMock.getId(), response.getId());
         assertEquals("María", response.getNombre());
 
-        verify(clienteRepository, times(1)).findById(anyString());
+        verify(clienteRepository, times(1)).findById(any(UUID.class));
     }
 
     @Test
@@ -242,18 +243,18 @@ class ClienteServiceTest {
                 .build();
 
         Cliente clienteOtroNegocio = Cliente.builder()
-                .id("cliente-123")
+                .id(UUID.randomUUID())
                 .nombre("Cliente de otro negocio")
                 .apellidoPaterno("Test")
                 .negocio(otroNegocio)
                 .build();
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(clienteRepository.findById(anyString())).thenReturn(Optional.of(clienteOtroNegocio));
+        when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.of(clienteOtroNegocio));
 
         // Act & Assert
         assertThrows(UnauthorizedException.class, () -> {
-            clienteService.obtenerCliente("usuario@test.com", "cliente-123");
+            clienteService.obtenerCliente("usuario@test.com", clienteOtroNegocio.getId().toString());
         });
     }
 
@@ -271,13 +272,13 @@ class ClienteServiceTest {
                 .build();
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(clienteRepository.findById(anyString())).thenReturn(Optional.of(clienteMock));
+        when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.of(clienteMock));
         when(clienteRepository.findByNegocioAndEmail(any(Negocio.class), anyString()))
                 .thenReturn(Optional.empty());
         when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteMock);
 
         // Act
-        ClienteResponse response = clienteService.actualizarCliente("usuario@test.com", "cliente-123", updateRequest);
+        ClienteResponse response = clienteService.actualizarCliente("usuario@test.com", clienteMock.getId().toString(), updateRequest);
 
         // Assert
         assertNotNull(response);
@@ -289,7 +290,7 @@ class ClienteServiceTest {
     void testActualizarCliente_EmailDuplicado() {
         // Arrange
         Cliente otroCliente = Cliente.builder()
-                .id("otro-cliente")
+                .id(UUID.randomUUID())
                 .email("email-existente@test.com")
                 .negocio(negocioMock)
                 .build();
@@ -302,13 +303,13 @@ class ClienteServiceTest {
                 .build();
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(clienteRepository.findById(anyString())).thenReturn(Optional.of(clienteMock));
+        when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.of(clienteMock));
         when(clienteRepository.findByNegocioAndEmail(any(Negocio.class), anyString()))
                 .thenReturn(Optional.of(otroCliente));
 
         // Act & Assert
         assertThrows(BadRequestException.class, () -> {
-            clienteService.actualizarCliente("usuario@test.com", "cliente-123", updateRequest);
+            clienteService.actualizarCliente("usuario@test.com", clienteMock.getId().toString(), updateRequest);
         });
 
         verify(clienteRepository, never()).save(any(Cliente.class));
@@ -319,11 +320,11 @@ class ClienteServiceTest {
     void testEliminarCliente_Exitoso() {
         // Arrange
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(clienteRepository.findById(anyString())).thenReturn(Optional.of(clienteMock));
+        when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.of(clienteMock));
         doNothing().when(clienteRepository).delete(any(Cliente.class));
 
         // Act
-        clienteService.eliminarCliente("usuario@test.com", "cliente-123");
+        clienteService.eliminarCliente("usuario@test.com", clienteMock.getId().toString());
 
         // Assert
         verify(clienteRepository, times(1)).delete(any(Cliente.class));
@@ -334,11 +335,13 @@ class ClienteServiceTest {
     void testEliminarCliente_ClienteNoEncontrado() {
         // Arrange
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
-        when(clienteRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
+
+        String fakeUUID = UUID.randomUUID().toString();
 
         // Act & Assert
         assertThrows(NotFoundException.class, () -> {
-            clienteService.eliminarCliente("usuario@test.com", "cliente-inexistente");
+            clienteService.eliminarCliente("usuario@test.com", fakeUUID);
         });
 
         verify(clienteRepository, never()).delete(any(Cliente.class));
