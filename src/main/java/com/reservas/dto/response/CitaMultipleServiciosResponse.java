@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Response para cita con múltiples servicios
@@ -30,7 +31,7 @@ public class CitaMultipleServiciosResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ServicioInfo {
-        private String id;
+        private UUID id;
         private String nombre;
         private BigDecimal precio;
         private Integer duracionMinutos;

@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Response con métricas completas del dashboard
@@ -70,7 +71,7 @@ public class DashboardMetricasResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ServicioPopular {
-        private String id;
+        private UUID id;
         private String nombre;
         private Long cantidadCitas;
         private BigDecimal ingresoGenerado;

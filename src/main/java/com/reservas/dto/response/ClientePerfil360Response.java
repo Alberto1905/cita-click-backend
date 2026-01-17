@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * DTO para la vista de perfil 360 del cliente
@@ -20,7 +21,7 @@ import java.util.List;
 public class ClientePerfil360Response {
 
     // Información básica del cliente
-    private String id;
+    private UUID id;
     private String nombre;
     private String apellidoPaterno;
     private String apellidoMaterno;
@@ -80,7 +81,7 @@ public class ClientePerfil360Response {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ServicioUtilizado {
-        private String servicioId;
+        private UUID servicioId;
         private String servicioNombre;
         private Long cantidadVeces;
         private BigDecimal gastoTotal;

@@ -6,13 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClienteResponse {
-    private String id;
+    private UUID id;
     private String nombre;
     private String apellidoPaterno;
     private String apellidoMaterno;

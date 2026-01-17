@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -27,9 +28,9 @@ public class CitaResponse {
     private ServicioInfo servicio;
 
     // Legacy fields for backward compatibility
-    private String clienteId;
+    private UUID clienteId;
     private String clienteNombre;
-    private String servicioId;
+    private UUID servicioId;
     private String servicioNombre;
     private Integer servicioDuracion;
     private BigDecimal servicioPrecio;
@@ -54,7 +55,7 @@ public class CitaResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ClienteInfo {
-        private String id;
+        private UUID id;
         private String nombre;
         private String apellidoPaterno;
         private String apellidoMaterno;
@@ -67,7 +68,7 @@ public class CitaResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ServicioInfo {
-        private String id;
+        private UUID id;
         private String nombre;
         private Integer duracion; // Frontend expects "duracion"
         private Integer duracionMinutos; // Keep for compatibility
