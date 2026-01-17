@@ -200,14 +200,14 @@ public class DashboardMetricasService {
                 .count();
 
         // Agrupar citas completadas por servicio
-        Map<String, List<Cita>> citasPorServicio = citas.stream()
+        Map<UUID, List<Cita>> citasPorServicio = citas.stream()
                 .filter(c -> c.getEstado() == Cita.EstadoCita.COMPLETADA)
                 .collect(Collectors.groupingBy(c -> c.getServicio().getId()));
 
         // Top 5 servicios más solicitados
         List<DashboardMetricasResponse.ServicioPopular> serviciosMasSolicitados = citasPorServicio.entrySet().stream()
                 .map(entry -> {
-                    String servicioId = entry.getKey();
+                    UUID servicioId = entry.getKey();
                     List<Cita> citasServicio = entry.getValue();
                     String servicioNombre = citasServicio.get(0).getServicio().getNombre();
                     long cantidadCitas = citasServicio.size();

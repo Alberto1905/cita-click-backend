@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -101,7 +102,7 @@ public class ServicioService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
-        Servicio servicio = servicioRepository.findById(servicioId)
+        Servicio servicio = servicioRepository.findById(UUID.fromString(servicioId))
                 .orElseThrow(() -> new NotFoundException("Servicio no encontrado"));
 
         // Verificar que el servicio pertenece al negocio del usuario
@@ -119,7 +120,7 @@ public class ServicioService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
-        Servicio servicio = servicioRepository.findById(servicioId)
+        Servicio servicio = servicioRepository.findById(UUID.fromString(servicioId))
                 .orElseThrow(() -> new NotFoundException("Servicio no encontrado"));
 
         // Verificar que el servicio pertenece al negocio del usuario
@@ -149,7 +150,7 @@ public class ServicioService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
-        Servicio servicio = servicioRepository.findById(servicioId)
+        Servicio servicio = servicioRepository.findById(UUID.fromString(servicioId))
                 .orElseThrow(() -> new NotFoundException("Servicio no encontrado"));
 
         // Verificar que el servicio pertenece al negocio del usuario

@@ -18,9 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -53,7 +51,7 @@ public class ClientePerfil360Service {
         }
 
         // Validar cliente
-        Cliente cliente = clienteRepository.findById(clienteId)
+        Cliente cliente = clienteRepository.findById(UUID.fromString(clienteId))
                 .orElseThrow(() -> new NotFoundException("Cliente no encontrado"));
 
         if (!cliente.getNegocio().getId().equals(negocio.getId())) {
@@ -185,13 +183,13 @@ public class ClientePerfil360Service {
      */
     private List<ClientePerfil360Response.ServicioUtilizado> calcularServiciosFrecuentes(List<Cita> citas) {
         // Agrupar por servicio
-        Map<String, List<Cita>> citasPorServicio = citas.stream()
+        Map<UUID, List<Cita>> citasPorServicio = citas.stream()
                 .filter(c -> c.getEstado() == Cita.EstadoCita.COMPLETADA)
                 .collect(Collectors.groupingBy(c -> c.getServicio().getId()));
 
         return citasPorServicio.entrySet().stream()
                 .map(entry -> {
-                    String servicioId = entry.getKey();
+                    UUID servicioId = entry.getKey();
                     List<Cita> citasServicio = entry.getValue();
 
                     String servicioNombre = citasServicio.get(0).getServicio().getNombre();
@@ -214,7 +212,7 @@ public class ClientePerfil360Service {
                             .ultimaVez(ultimaVez)
                             .build();
                 })
-                .sorted(Comparator.comparing(ClientePerfil360Response.ServicioUtilizado::getCantidadVeces).reversed())
+                .sorted(Comparator.comparingLong(ClientePerfil360Response.ServicioUtilizado::getCantidadVeces).reversed())
                 .limit(10) // Top 10 servicios
                 .collect(Collectors.toList());
     }

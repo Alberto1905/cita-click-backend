@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,7 +84,7 @@ public class CitaService {
         planLimitesService.validarLimiteCitasMes(negocio.getId(), plan);
 
         // Validar cliente
-        Cliente cliente = clienteRepository.findById(request.getClienteId())
+        Cliente cliente = clienteRepository.findById(UUID.fromString(request.getClienteId()))
                 .orElseThrow(() -> new NotFoundException("Cliente no encontrado"));
 
         if (!cliente.getNegocio().getId().equals(negocio.getId())) {
@@ -91,7 +92,7 @@ public class CitaService {
         }
 
         // Validar servicio
-        Servicio servicio = servicioRepository.findById(request.getServicioId())
+        Servicio servicio = servicioRepository.findById(UUID.fromString(request.getServicioId()))
                 .orElseThrow(() -> new NotFoundException("Servicio no encontrado"));
 
         if (!servicio.getNegocio().getId().equals(negocio.getId())) {
@@ -226,7 +227,7 @@ public class CitaService {
         }
 
         // Validar servicio
-        Servicio servicio = servicioRepository.findById(request.getServicioId())
+        Servicio servicio = servicioRepository.findById(UUID.fromString(request.getServicioId()))
                 .orElseThrow(() -> new NotFoundException("Servicio no encontrado"));
 
         if (!servicio.getNegocio().getId().equals(usuario.getNegocio().getId())) {
@@ -302,7 +303,7 @@ public class CitaService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
-        Servicio servicio = servicioRepository.findById(servicioId)
+        Servicio servicio = servicioRepository.findById(UUID.fromString(servicioId))
                 .orElseThrow(() -> new NotFoundException("Servicio no encontrado"));
 
         if (!servicio.getNegocio().getId().equals(usuario.getNegocio().getId())) {
@@ -446,7 +447,7 @@ public class CitaService {
         planLimitesService.validarLimiteCitasMes(negocio.getId(), plan);
 
         // Validar cliente
-        Cliente cliente = clienteRepository.findById(request.getClienteId())
+        Cliente cliente = clienteRepository.findById(UUID.fromString(request.getClienteId()))
                 .orElseThrow(() -> new NotFoundException("Cliente no encontrado"));
 
         if (!cliente.getNegocio().getId().equals(negocio.getId())) {
@@ -456,7 +457,7 @@ public class CitaService {
         // Validar y cargar servicios
         List<Servicio> servicios = new ArrayList<>();
         for (String servicioId : request.getServicioIds()) {
-            Servicio servicio = servicioRepository.findById(servicioId)
+            Servicio servicio = servicioRepository.findById(UUID.fromString(servicioId))
                     .orElseThrow(() -> new NotFoundException("Servicio no encontrado: " + servicioId));
 
             if (!servicio.getNegocio().getId().equals(negocio.getId())) {

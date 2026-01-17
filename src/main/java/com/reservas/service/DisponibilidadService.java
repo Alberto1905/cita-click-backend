@@ -19,6 +19,7 @@ import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -62,7 +63,7 @@ public class DisponibilidadService {
         // Validar y cargar servicios
         List<Servicio> servicios = new ArrayList<>();
         for (String servicioId : request.getServicioIds()) {
-            Servicio servicio = servicioRepository.findById(servicioId)
+            Servicio servicio = servicioRepository.findById(UUID.fromString(servicioId))
                     .orElseThrow(() -> new NotFoundException("Servicio no encontrado: " + servicioId));
 
             if (!servicio.getNegocio().getId().equals(negocio.getId())) {
