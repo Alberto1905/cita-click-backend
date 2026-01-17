@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ClienteRepository extends JpaRepository<Cliente, String> {
+public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
 
     List<Cliente> findByNegocio(Negocio negocio);
 
