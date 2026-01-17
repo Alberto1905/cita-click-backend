@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface ServicioRepository extends JpaRepository<Servicio, String> {
+public interface ServicioRepository extends JpaRepository<Servicio, UUID> {
 
     List<Servicio> findByNegocio(Negocio negocio);
 
