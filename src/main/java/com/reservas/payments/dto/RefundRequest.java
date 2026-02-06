@@ -14,7 +14,14 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class RefundRequest {
 
-    @NotBlank(message = "Payment Intent ID es requerido")
+    /**
+     * ID del pago en la base de datos (usado por el controlador).
+     */
+    private String paymentId;
+
+    /**
+     * ID del PaymentIntent en Stripe (usado internamente).
+     */
     private String paymentIntentId;
 
     /**

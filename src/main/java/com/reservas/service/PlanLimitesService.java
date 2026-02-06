@@ -44,12 +44,14 @@ public class PlanLimitesService {
         if (!planLimitesRepository.existsByTipoPlan(TipoPlan.BASICO)) {
             PlanLimites basico = PlanLimites.builder()
                     .tipoPlan(TipoPlan.BASICO)
-                    .maxUsuarios(2)
+                    .maxUsuarios(1)
                     .maxClientes(50)
                     .maxCitasMes(100)
                     .maxServicios(10)
+                    .emailRecordatoriosHabilitado(false) // Sin recordatorios por email
                     .smsWhatsappHabilitado(false)
                     .reportesAvanzadosHabilitado(false)
+                    .personalizacionEmailHabilitado(false)
                     .soportePrioritario(false)
                     .build();
             planLimitesRepository.save(basico);
@@ -61,11 +63,13 @@ public class PlanLimitesService {
             PlanLimites profesional = PlanLimites.builder()
                     .tipoPlan(TipoPlan.PROFESIONAL)
                     .maxUsuarios(5)
-                    .maxClientes(300)
+                    .maxClientes(100)
                     .maxCitasMes(500)
                     .maxServicios(30)
+                    .emailRecordatoriosHabilitado(true) // CON recordatorios por email
                     .smsWhatsappHabilitado(false) // Disponible Q2 2026
-                    .reportesAvanzadosHabilitado(true)
+                    .reportesAvanzadosHabilitado(false) // Solo Premium
+                    .personalizacionEmailHabilitado(false) // Solo Premium
                     .soportePrioritario(false)
                     .build();
             planLimitesRepository.save(profesional);
@@ -76,12 +80,14 @@ public class PlanLimitesService {
         if (!planLimitesRepository.existsByTipoPlan(TipoPlan.PREMIUM)) {
             PlanLimites premium = PlanLimites.builder()
                     .tipoPlan(TipoPlan.PREMIUM)
-                    .maxUsuarios(999999) // Ilimitado
-                    .maxClientes(999999) // Ilimitado
-                    .maxCitasMes(999999) // Ilimitado
-                    .maxServicios(999999) // Ilimitado
+                    .maxUsuarios(10) // Ilimitado
+                    .maxClientes(-1) // Ilimitado
+                    .maxCitasMes(-1) // Ilimitado
+                    .maxServicios(-1) // Ilimitado
+                    .emailRecordatoriosHabilitado(true) // CON recordatorios por email
                     .smsWhatsappHabilitado(false) // Disponible Q2 2026
-                    .reportesAvanzadosHabilitado(true)
+                    .reportesAvanzadosHabilitado(true) // CON reportes avanzados
+                    .personalizacionEmailHabilitado(true) // CON personalización de emails
                     .soportePrioritario(true)
                     .build();
             planLimitesRepository.save(premium);
@@ -264,8 +270,10 @@ public class PlanLimitesService {
         PlanLimites limites = obtenerLimites(tipoPlan);
 
         boolean habilitada = switch (funcionalidad.toLowerCase()) {
+            case "email", "email_recordatorios" -> limites.isEmailRecordatoriosHabilitado();
             case "sms", "whatsapp", "sms_whatsapp" -> limites.isSmsWhatsappHabilitado();
             case "reportes_avanzados" -> limites.isReportesAvanzadosHabilitado();
+            case "personalizacion_email" -> limites.isPersonalizacionEmailHabilitado();
             case "soporte_prioritario" -> limites.isSoportePrioritario();
             default -> throw new IllegalArgumentException("Funcionalidad no reconocida: " + funcionalidad);
         };
@@ -278,6 +286,24 @@ public class PlanLimitesService {
         }
 
         log.info("[PlanLimitesService] Funcionalidad '{}' está habilitada", funcionalidad);
+    }
+
+    /**
+     * Valida si una funcionalidad está habilitada para un usuario (por email)
+     */
+    public void validarFuncionalidadHabilitada(String email, String funcionalidad) {
+        log.info("[PlanLimitesService] Validando funcionalidad '{}' para usuario: {}", funcionalidad, email);
+
+        Usuario usuario = usuarioRepository.findByEmailWithNegocio(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        Negocio negocio = usuario.getNegocio();
+        if (negocio == null) {
+            throw new ResourceNotFoundException("Negocio no encontrado para el usuario");
+        }
+
+        TipoPlan plan = TipoPlan.fromCodigo(negocio.getPlan());
+        validarFuncionalidadHabilitada(plan, funcionalidad);
     }
 
     /**
@@ -311,8 +337,10 @@ public class PlanLimitesService {
                 .maxClientes(limites.getMaxClientes())
                 .maxCitasMes(limites.getMaxCitasMes())
                 .maxServicios(limites.getMaxServicios())
+                .emailRecordatoriosHabilitado(limites.isEmailRecordatoriosHabilitado())
                 .smsWhatsappHabilitado(limites.isSmsWhatsappHabilitado())
                 .reportesAvanzadosHabilitado(limites.isReportesAvanzadosHabilitado())
+                .personalizacionEmailHabilitado(limites.isPersonalizacionEmailHabilitado())
                 .soportePrioritario(limites.isSoportePrioritario())
                 .build();
     }
@@ -400,8 +428,10 @@ public class PlanLimitesService {
         PlanLimites limites = obtenerLimites(plan);
 
         boolean habilitada = switch (funcionalidad.toLowerCase()) {
+            case "email", "email_recordatorios" -> limites.isEmailRecordatoriosHabilitado();
             case "sms", "whatsapp", "sms_whatsapp" -> limites.isSmsWhatsappHabilitado();
             case "reportes_avanzados" -> limites.isReportesAvanzadosHabilitado();
+            case "personalizacion_email" -> limites.isPersonalizacionEmailHabilitado();
             case "soporte_prioritario" -> limites.isSoportePrioritario();
             default -> throw new IllegalArgumentException("Funcionalidad no reconocida: " + funcionalidad);
         };

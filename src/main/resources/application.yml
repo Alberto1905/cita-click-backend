@@ -36,8 +36,9 @@ spring:
     # - BD ya existe con datos reales → usar 'validate'
     # - Cambios de schema → aplicar vía scripts SQL manuales o migraciones
     # - 'update' genera errores DDL con índices/constraints existentes
+    # - TEMPORAL: usando 'update' para recrear schema después de reset de BD
     hibernate:
-      ddl-auto: ${DDL_AUTO:validate}
+      ddl-auto: ${DDL_AUTO:update}
 
     # NO mostrar SQL por defecto (habilitar en perfil local/test)
     show-sql: false
@@ -103,7 +104,7 @@ logging:
 # ============================================================================
 jwt:
   # Secret debe tener mínimo 512 bits (64 caracteres) para HS512
-  secret: ${JWT_SECRET:miClaveSecretaSuperMegaSeguraParaJWT2024ProyectoReservasSaaS12345}
+  secret: ${JWT_SECRET:REDACTED_JWT_SECRET}
   expiration: 604800000      # 7 días en milisegundos
   refresh-expiration: 2592000000  # 30 días en milisegundos
 
@@ -112,7 +113,7 @@ jwt:
 # ============================================================================
 google:
   client:
-    id: ${GOOGLE_CLIENT_ID}
+    id: ${GOOGLE_CLIENT_ID:959341914970-esbnod0d1mhg4u1m8cae5q0g8knepnmv.apps.googleusercontent.com}
 
 # ============================================================================
 # STRIPE CONFIGURATION
@@ -120,13 +121,13 @@ google:
 stripe:
   # Clave secreta de Stripe (usada por diferentes servicios)
   secret:
-    key: ${STRIPE_SECRET_KEY}
+    key: ${STRIPE_SECRET_KEY:REDACTED_STRIPE_TEST_KEY}
 
   api:
-    key: ${STRIPE_SECRET_KEY}
+    key: ${STRIPE_SECRET_KEY:pk_test_51SxZydCJJfBmj7w4mJLClVSuBL973RjUn5C7VBOBt48wl310KMO1Is90nOSkw4Ip0bTFtg4sQlZD1XynocZesc570005LWY9d4}
 
   webhook:
-    secret: ${STRIPE_WEBHOOK_SECRET}
+    secret: ${STRIPE_WEBHOOK_SECRET:REDACTED_STRIPE_WEBHOOK}
 
   success:
     url: ${FRONTEND_URL:http://localhost:3000}/payment/success
@@ -136,47 +137,51 @@ stripe:
 
   # Price IDs (crear en Stripe Dashboard)
   price:
-    basico: ${STRIPE_PRICE_BASICO:price_basico_id}
-    profesional: ${STRIPE_PRICE_PROFESIONAL:price_profesional_id}
-    premium: ${STRIPE_PRICE_PREMIUM:price_premium_id}
+    basico: ${STRIPE_PRICE_BASICO:price_1Sxa1bCJJfBmj7w4e7MTljm6}
+    profesional: ${STRIPE_PRICE_PROFESIONAL:price_1Sxa2HCJJfBmj7w48rjQIY2N}
+    premium: ${STRIPE_PRICE_PREMIUM:price_1Sxa2zCJJfBmj7w4aqqXGc68}
 
 # ============================================================================
 # TWILIO CONFIGURATION (SMS y WhatsApp)
 # ============================================================================
 twilio:
   account:
-    sid: ${TWILIO_ACCOUNT_SID:}
+    sid: ${TWILIO_ACCOUNT_SID:REDACTED_TWILIO_SID}
 
   auth:
-    token: ${TWILIO_AUTH_TOKEN:}
+    token: ${TWILIO_AUTH_TOKEN:REDACTED_TWILIO_TOKEN}
 
   phone:
-    number: ${TWILIO_PHONE_NUMBER:}
+    number: ${TWILIO_PHONE_NUMBER:+18066212750}
 
   whatsapp:
-    from: ${TWILIO_WHATSAPP_NUMBER:}
-    number: ${TWILIO_WHATSAPP_NUMBER:}
+    from: ${TWILIO_WHATSAPP_NUMBER:+14155238886}
+    number: ${TWILIO_WHATSAPP_NUMBER:+14155238886}
 
 # ============================================================================
 # SENDGRID CONFIGURATION (Email)
 # ============================================================================
 sendgrid:
   api:
-    key: ${SENDGRID_API_KEY:}
+    key: ${SENDGRID_API_KEY:REDACTED_SENDGRID_KEY}
 
   from:
-    email: ${SENDGRID_FROM_EMAIL:noreply@tu-dominio.com}
-    name: ${SENDGRID_FROM_NAME:Sistema de Reservas}
+    email: ${SENDGRID_FROM_EMAIL:info@citaclick.com.mx}
+    name: ${SENDGRID_FROM_NAME:Cita Click}
+
+  template:
+    verification: ${SENDGRID_TEMPLATE_VERIFICATION:d-feb3b116023c461999dd46f216bae714}
+    reminder: ${SENDGRID_TEMPLATE_REMINDER:d-c78b754e23e84a9c87594a76e9d852b6}
 
 # ============================================================================
 # GOOGLE CLOUD PLATFORM (Cloud Storage)
 # ============================================================================
 gcp:
   project:
-    id: ${GCP_PROJECT_ID:}
+    id: ${GCP_PROJECT_ID:s}
 
   bucket:
-    name: ${GCP_BUCKET_NAME:}
+    name: ${GCP_BUCKET_NAME:s}
 
 # ============================================================================
 # RATE LIMITING
@@ -190,6 +195,13 @@ rate:
 # ============================================================================
 frontend:
   url: ${FRONTEND_URL:http://localhost:5174}
+
+# ============================================================================
+# APPLICATION SETTINGS
+# ============================================================================
+app:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:5174}
 
 # ============================================================================
 # ACTUATOR / MONITORING

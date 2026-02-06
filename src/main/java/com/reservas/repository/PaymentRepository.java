@@ -35,4 +35,11 @@ public interface PaymentRepository extends JpaRepository<Payment, String> {
 
     @Query("SELECT SUM(p.netAmount) FROM Payment p WHERE p.usuario.id = ?1 AND p.status = 'SUCCESS'")
     java.math.BigDecimal getTotalNetAmountByUsuarioId(UUID usuarioId);
+
+    // Métodos adicionales para el controlador
+    @Query("SELECT p FROM Payment p WHERE p.usuario.email = ?1 ORDER BY p.createdAt DESC")
+    Page<Payment> findByUsuarioEmail(String email, Pageable pageable);
+
+    @Query("SELECT p FROM Payment p WHERE p.usuario.email = ?1 AND p.status = ?2 ORDER BY p.createdAt DESC")
+    Page<Payment> findByUsuarioEmailAndStatus(String email, Payment.PaymentStatus status, Pageable pageable);
 }

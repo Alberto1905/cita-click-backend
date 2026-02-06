@@ -40,7 +40,7 @@ public class ReporteController {
     private UsuarioRepository usuarioRepository;
 
     @GetMapping("/diario")
-    @RequiresPlanFeature(value = "reportes_avanzados", message = "Los reportes avanzados solo están disponibles en planes Profesional y Premium. Actualice su plan para acceder.")
+    @RequiresPlanFeature(value = "reportes_avanzados", message = "Los reportes avanzados solo están disponibles en el plan Premium. Actualice su plan para acceder a esta funcionalidad.")
     public ResponseEntity<ApiResponse<ReporteResponse>> reporteDiario(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
             Authentication auth) {
@@ -56,7 +56,7 @@ public class ReporteController {
     }
 
     @GetMapping("/semanal")
-    @RequiresPlanFeature(value = "reportes_avanzados", message = "Los reportes avanzados solo están disponibles en planes Profesional y Premium. Actualice su plan para acceder.")
+    @RequiresPlanFeature(value = "reportes_avanzados", message = "Los reportes avanzados solo están disponibles en el plan Premium. Actualice su plan para acceder a esta funcionalidad.")
     public ResponseEntity<ApiResponse<ReporteResponse>> reporteSemanal(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
             Authentication auth) {
@@ -71,7 +71,7 @@ public class ReporteController {
     }
 
     @GetMapping("/mensual")
-    @RequiresPlanFeature(value = "reportes_avanzados", message = "Los reportes avanzados solo están disponibles en planes Profesional y Premium. Actualice su plan para acceder.")
+    @RequiresPlanFeature(value = "reportes_avanzados", message = "Los reportes avanzados solo están disponibles en el plan Premium. Actualice su plan para acceder a esta funcionalidad.")
     public ResponseEntity<ApiResponse<ReporteResponse>> reporteMensual(
             @RequestParam int mes,
             @RequestParam int anio,
@@ -89,7 +89,7 @@ public class ReporteController {
     // ==================== ENDPOINTS DE EXPORTACIÓN PDF ====================
 
     @GetMapping("/diario/pdf")
-    @RequiresPlanFeature(value = "reportes_avanzados", message = "La exportación de reportes a PDF solo está disponible en planes Profesional y Premium. Actualice su plan para acceder.")
+    @RequiresPlanFeature(value = "reportes_avanzados", message = "La exportación de reportes a PDF solo está disponible en el plan Premium. Actualice su plan para acceder a esta funcionalidad.")
     public ResponseEntity<byte[]> reporteDiarioPdf(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
             Authentication auth) {
@@ -118,7 +118,7 @@ public class ReporteController {
     }
 
     @GetMapping("/semanal/pdf")
-    @RequiresPlanFeature(value = "reportes_avanzados", message = "La exportación de reportes a PDF solo está disponible en planes Profesional y Premium. Actualice su plan para acceder.")
+    @RequiresPlanFeature(value = "reportes_avanzados", message = "La exportación de reportes a PDF solo está disponible en el plan Premium. Actualice su plan para acceder a esta funcionalidad.")
     public ResponseEntity<byte[]> reporteSemanalPdf(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
             Authentication auth) {
@@ -147,7 +147,7 @@ public class ReporteController {
     }
 
     @GetMapping("/mensual/pdf")
-    @RequiresPlanFeature(value = "reportes_avanzados", message = "La exportación de reportes a PDF solo está disponible en planes Profesional y Premium. Actualice su plan para acceder.")
+    @RequiresPlanFeature(value = "reportes_avanzados", message = "La exportación de reportes a PDF solo está disponible en el plan Premium. Actualice su plan para acceder a esta funcionalidad.")
     public ResponseEntity<byte[]> reporteMensualPdf(
             @RequestParam int mes,
             @RequestParam int anio,
@@ -179,7 +179,7 @@ public class ReporteController {
     // ==================== ENDPOINTS DE EXPORTACIÓN EXCEL ====================
 
     @GetMapping("/diario/excel")
-    @RequiresPlanFeature(value = "reportes_avanzados", message = "La exportación de reportes a Excel solo está disponible en planes Profesional y Premium. Actualice su plan para acceder.")
+    @RequiresPlanFeature(value = "reportes_avanzados", message = "La exportación de reportes a Excel solo está disponible en el plan Premium. Actualice su plan para acceder a esta funcionalidad.")
     public ResponseEntity<byte[]> reporteDiarioExcel(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
             Authentication auth) {
@@ -208,7 +208,7 @@ public class ReporteController {
     }
 
     @GetMapping("/semanal/excel")
-    @RequiresPlanFeature(value = "reportes_avanzados", message = "La exportación de reportes a Excel solo está disponible en planes Profesional y Premium. Actualice su plan para acceder.")
+    @RequiresPlanFeature(value = "reportes_avanzados", message = "La exportación de reportes a Excel solo está disponible en el plan Premium. Actualice su plan para acceder a esta funcionalidad.")
     public ResponseEntity<byte[]> reporteSemanalExcel(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
             Authentication auth) {
@@ -237,7 +237,7 @@ public class ReporteController {
     }
 
     @GetMapping("/mensual/excel")
-    @RequiresPlanFeature(value = "reportes_avanzados", message = "La exportación de reportes a Excel solo está disponible en planes Profesional y Premium. Actualice su plan para acceder.")
+    @RequiresPlanFeature(value = "reportes_avanzados", message = "La exportación de reportes a Excel solo está disponible en el plan Premium. Actualice su plan para acceder a esta funcionalidad.")
     public ResponseEntity<byte[]> reporteMensualExcel(
             @RequestParam int mes,
             @RequestParam int anio,

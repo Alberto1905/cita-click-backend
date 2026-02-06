@@ -58,6 +58,13 @@ public class Cita {
     @Builder.Default
     private boolean recordatorioEnviado = false;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean pagado = false;
+
+    @Column(name = "fecha_pago")
+    private LocalDateTime fechaPago;
+
     // Campos para citas recurrentes
     @Column(name = "tipo_recurrencia")
     @Enumerated(EnumType.STRING)

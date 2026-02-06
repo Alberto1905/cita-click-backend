@@ -10,6 +10,7 @@ import com.reservas.dto.response.DisponibilidadResponse;
 import com.reservas.service.CitaService;
 import com.reservas.service.CitaRecurrenteService;
 import com.reservas.service.DisponibilidadService;
+import com.reservas.service.PlanLimitesService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,9 @@ public class CitaController {
 
     @Autowired
     private DisponibilidadService disponibilidadService;
+
+    @Autowired
+    private PlanLimitesService planLimitesService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<CitaResponse>> crearCita(
@@ -245,6 +249,102 @@ public class CitaController {
         } catch (Exception e) {
             log.error("[Citas Recurrentes] Error al actualizar serie: {}", e.getMessage());
             return ResponseEntity.badRequest().body(ApiResponse.<Integer>builder()
+                    .success(false)
+                    .message(e.getMessage())
+                    .build());
+        }
+    }
+
+    /**
+     * Enviar confirmación de cita por WhatsApp/SMS
+     */
+    @PostMapping("/{id}/enviar-confirmacion")
+    public ResponseEntity<ApiResponse<Void>> enviarConfirmacionCita(
+            @PathVariable String id,
+            @RequestParam String canal,
+            @RequestParam(defaultValue = "false") boolean confirmarPago,
+            Authentication auth) {
+        try {
+            log.info("[CitaController] Enviando confirmación de cita {} por {}", id, canal);
+            citaService.enviarConfirmacionCita(auth.getName(), id, canal, confirmarPago);
+
+            return ResponseEntity.ok(ApiResponse.<Void>builder()
+                    .success(true)
+                    .message("Confirmación enviada exitosamente al cliente")
+                    .build());
+        } catch (Exception e) {
+            log.error("[CitaController] Error al enviar confirmación: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(ApiResponse.<Void>builder()
+                    .success(false)
+                    .message(e.getMessage())
+                    .build());
+        }
+    }
+
+    /**
+     * Enviar recordatorio de cita - Solo EMAIL disponible (SMS y WhatsApp próximamente)
+     */
+    @PostMapping("/{id}/enviar-recordatorio")
+    public ResponseEntity<ApiResponse<Void>> enviarRecordatorioCita(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "email") String canal,
+            Authentication auth) {
+        try {
+            log.info("[CitaController] Enviando recordatorio de cita {} por {}", id, canal);
+
+            // Validar que solo se use EMAIL (los demás están deshabilitados)
+            if (!canal.equalsIgnoreCase("email")) {
+                return ResponseEntity.badRequest().body(ApiResponse.<Void>builder()
+                        .success(false)
+                        .message("Actualmente solo está disponible el envío por Email. SMS y WhatsApp estarán disponibles próximamente.")
+                        .build());
+            }
+
+            // Validar que el plan tenga acceso a recordatorios por email
+            try {
+                planLimitesService.validarFuncionalidadHabilitada(auth.getName(), "email_recordatorios");
+            } catch (Exception e) {
+                log.warn("[CitaController] Usuario sin acceso a recordatorios por email: {}", e.getMessage());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.<Void>builder()
+                        .success(false)
+                        .message("Tu plan actual no incluye recordatorios por email. Actualiza a un plan Profesional o Premium para acceder a esta funcionalidad.")
+                        .build());
+            }
+
+            citaService.enviarRecordatorioCita(auth.getName(), id, canal);
+
+            return ResponseEntity.ok(ApiResponse.<Void>builder()
+                    .success(true)
+                    .message("Recordatorio enviado exitosamente por email")
+                    .build());
+        } catch (Exception e) {
+            log.error("[CitaController] Error al enviar recordatorio: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(ApiResponse.<Void>builder()
+                    .success(false)
+                    .message(e.getMessage())
+                    .build());
+        }
+    }
+
+    /**
+     * Registrar pago de una cita
+     */
+    @PatchMapping("/{id}/registrar-pago")
+    public ResponseEntity<ApiResponse<CitaResponse>> registrarPago(
+            @PathVariable String id,
+            Authentication auth) {
+        try {
+            log.info("[CitaController] Registrando pago de cita: {}", id);
+            CitaResponse response = citaService.registrarPago(auth.getName(), id);
+
+            return ResponseEntity.ok(ApiResponse.<CitaResponse>builder()
+                    .success(true)
+                    .message("Pago registrado exitosamente")
+                    .data(response)
+                    .build());
+        } catch (Exception e) {
+            log.error("[CitaController] Error al registrar pago: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(ApiResponse.<CitaResponse>builder()
                     .success(false)
                     .message(e.getMessage())
                     .build());

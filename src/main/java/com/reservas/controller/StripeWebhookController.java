@@ -122,10 +122,17 @@ public class StripeWebhookController {
 
         log.info("Checkout completado - Session ID: {}", session.getId());
         log.info("Payment Status: {}", session.getPaymentStatus());
+        log.info("Mode: {}", session.getMode());
         log.info("Customer Email: {}",
                 session.getCustomerDetails() != null ? session.getCustomerDetails().getEmail() : "N/A");
 
-        if ("paid".equals(session.getPaymentStatus())) {
+        // Procesar según el modo de la sesión
+        if ("subscription".equals(session.getMode())) {
+            // Es una suscripción - marcar trial como usado
+            log.info("Procesando suscripción - Subscription ID: {}", session.getSubscription());
+            stripeService.procesarSuscripcionCreada(session);
+        } else if ("paid".equals(session.getPaymentStatus())) {
+            // Es un pago único
             String sessionId = session.getId();
             String paymentIntentId = session.getPaymentIntent();
 

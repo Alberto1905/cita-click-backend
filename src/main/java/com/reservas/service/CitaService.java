@@ -67,6 +67,12 @@ public class CitaService {
     @Autowired
     private CitaRecurrenteService citaRecurrenteService;
 
+    @Autowired
+    private com.reservas.notifications.service.NotificationService notificationService;
+
+    @Autowired
+    private EmailService emailService;
+
     @Transactional
     public CitaResponse crearCita(String email, CitaRequest request) {
         log.info("Creando cita para usuario: {}", email);
@@ -364,6 +370,22 @@ public class CitaService {
         LocalTime horaActual = horario.getHoraApertura();
         LocalTime horaCierre = horario.getHoraCierre();
 
+        // Si es el día actual, ajustar hora de inicio para que sea después de la hora actual
+        LocalDate hoy = LocalDate.now();
+        LocalTime horaActualDelDia = LocalTime.now();
+
+        if (fecha.equals(hoy)) {
+            // Si la hora de apertura ya pasó, empezar desde la siguiente hora disponible
+            if (horaActual.isBefore(horaActualDelDia)) {
+                // Redondear a la siguiente hora en intervalos de 30 minutos
+                int minutosDesdeMedianoche = horaActualDelDia.getHour() * 60 + horaActualDelDia.getMinute();
+                int minutosRedondeados = ((minutosDesdeMedianoche / intervaloMinutos) + 1) * intervaloMinutos;
+                horaActual = LocalTime.of(minutosRedondeados / 60, minutosRedondeados % 60);
+
+                log.debug("📅 Día actual - Ajustando hora de inicio de {} a {}", horaActualDelDia, horaActual);
+            }
+        }
+
         while (horaActual.plusMinutes(duracionMinutos).isBefore(horaCierre) ||
                horaActual.plusMinutes(duracionMinutos).equals(horaCierre)) {
 
@@ -540,6 +562,212 @@ public class CitaService {
                 .precioTotal(precioTotal)
                 .duracionTotal(duracionTotal)
                 .build();
+    }
+
+    /**
+     * Envía confirmación de cita por WhatsApp/SMS al cliente
+     */
+    @Transactional
+    public void enviarConfirmacionCita(String email, String citaId, String canal, boolean confirmarPago) {
+        log.info("[CitaService] Enviando confirmación de cita {} por {}", citaId, canal);
+
+        // Obtener usuario y validar permisos
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+        // Obtener cita y validar que pertenece al negocio del usuario
+        Cita cita = citaRepository.findById(citaId)
+                .orElseThrow(() -> new NotFoundException("Cita no encontrada"));
+
+        if (!cita.getNegocio().getId().equals(usuario.getNegocio().getId())) {
+            throw new UnauthorizedException("No tienes permiso para confirmar esta cita");
+        }
+
+        // Validar que la cita tenga cliente con teléfono
+        Cliente cliente = cita.getCliente();
+        if (cliente == null) {
+            throw new BadRequestException("La cita no tiene un cliente asignado");
+        }
+
+        if (cliente.getTelefono() == null || cliente.getTelefono().isEmpty()) {
+            throw new BadRequestException("El cliente no tiene número de teléfono registrado");
+        }
+
+        // Construir mensaje de confirmación
+        String nombreNegocio = cita.getNegocio().getNombre();
+        String nombreCliente = cliente.getNombreCompleto();
+        String nombreServicio = cita.getServicio().getNombre();
+        String fechaHora = cita.getFechaHora().toString(); // Formatear según necesidad
+
+        String mensaje = String.format(
+            "Hola %s! 👋\n\n" +
+            "Te recordamos tu cita en %s:\n" +
+            "📅 Servicio: %s\n" +
+            "🕐 Fecha y hora: %s\n\n" +
+            "¿Confirmas tu asistencia? Por favor responde Sí o No.",
+            nombreCliente,
+            nombreNegocio,
+            nombreServicio,
+            fechaHora
+        );
+
+        if (confirmarPago) {
+            mensaje += "\n\n💰 Importante: El pago ha sido confirmado.";
+        }
+
+        log.info("[CitaService] Mensaje de confirmación preparado para {}: {}", cliente.getTelefono(), mensaje);
+        log.info("[CitaService] Canal: {}, Pago confirmado: {}", canal, confirmarPago);
+
+        // Enviar notificación según el canal seleccionado
+        try {
+            if ("WHATSAPP".equals(canal) || "AMBOS".equals(canal)) {
+                com.reservas.notifications.dto.SendNotificationRequest whatsappRequest =
+                    com.reservas.notifications.dto.SendNotificationRequest.builder()
+                        .recipient(cliente.getTelefono())
+                        .content(mensaje)
+                        .channel(com.reservas.notifications.domain.NotificationChannel.WHATSAPP)
+                        .usuarioId(usuario.getId().toString())
+                        .recipientName(nombreCliente)
+                        .relatedEntityId(citaId)
+                        .relatedEntityType("CITA")
+                        .build();
+
+                notificationService.sendWhatsApp(whatsappRequest);
+                log.info("[CitaService] Mensaje de WhatsApp enviado exitosamente");
+            }
+
+            if ("SMS".equals(canal) || "AMBOS".equals(canal)) {
+                // Por ahora, WhatsApp también puede ser usado como SMS
+                // Si tienes un provider SMS separado, puedes implementarlo aquí
+                log.warn("[CitaService] Canal SMS no implementado aún, usando WhatsApp como alternativa");
+            }
+        } catch (com.reservas.exception.NotificationException e) {
+            log.error("[CitaService] Error al enviar notificación: {}", e.getMessage());
+            // Si Twilio no está configurado, solo loguear pero no fallar
+            if ("PROVIDER_NOT_CONFIGURED".equals(e.getErrorCode())) {
+                log.warn("[CitaService] Provider de notificaciones no configurado. La notificación no se envió.");
+                log.info("[CitaService] Mensaje que se hubiera enviado: {}", mensaje);
+            } else {
+                throw e; // Re-throw otros errores
+            }
+        }
+    }
+
+    /**
+     * Envía recordatorio de cita por Email al cliente
+     * Nota: SMS y WhatsApp están deshabilitados temporalmente
+     */
+    @Transactional
+    public void enviarRecordatorioCita(String email, String citaId, String canal) {
+        log.info("[CitaService] Enviando recordatorio de cita {} por {}", citaId, canal);
+
+        // Obtener usuario y validar permisos
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+        // Obtener cita y validar que pertenece al negocio del usuario
+        Cita cita = citaRepository.findById(citaId)
+                .orElseThrow(() -> new NotFoundException("Cita no encontrada"));
+
+        if (!cita.getNegocio().getId().equals(usuario.getNegocio().getId())) {
+            throw new UnauthorizedException("No tienes permiso para enviar recordatorios de esta cita");
+        }
+
+        // Validar que la cita tenga cliente
+        Cliente cliente = cita.getCliente();
+        if (cliente == null) {
+            throw new BadRequestException("La cita no tiene un cliente asignado");
+        }
+
+        // Validar canal (solo EMAIL está habilitado)
+        if (!"email".equalsIgnoreCase(canal)) {
+            throw new BadRequestException("Actualmente solo está disponible el envío por Email. SMS y WhatsApp estarán disponibles próximamente.");
+        }
+
+        // Validar que el cliente tenga email
+        if (cliente.getEmail() == null || cliente.getEmail().isEmpty()) {
+            throw new BadRequestException("El cliente no tiene email registrado");
+        }
+
+        // Formatear fecha y hora
+        String nombreCliente = cliente.getNombreCompleto();
+        String nombreServicio = cita.getServicio().getNombre();
+        String nombreNegocio = cita.getNegocio().getNombre();
+
+        // Formatear fecha (ej: "Lunes 20 de Enero, 2026")
+        String fechaCita = formatearFecha(cita.getFechaHora());
+
+        // Formatear hora (ej: "10:00 AM")
+        String horaCita = formatearHora(cita.getFechaHora());
+
+        // Enviar recordatorio por email
+        boolean enviado = emailService.enviarRecordatorioCita(
+                cliente.getEmail(),
+                nombreCliente,
+                fechaCita,
+                horaCita,
+                nombreServicio,
+                nombreNegocio
+        );
+
+        if (enviado) {
+            log.info("✅ [CitaService] Recordatorio enviado exitosamente a {}", cliente.getEmail());
+        } else {
+            log.error("❌ [CitaService] Error al enviar recordatorio a {}", cliente.getEmail());
+            throw new BadRequestException("No se pudo enviar el recordatorio. Por favor, intenta nuevamente.");
+        }
+    }
+
+    /**
+     * Formatea una fecha en español (ej: "Lunes 20 de Enero, 2026")
+     */
+    private String formatearFecha(java.time.LocalDateTime fechaHora) {
+        java.util.Locale spanish = new java.util.Locale("es", "MX");
+
+        String diaSemana = fechaHora.getDayOfWeek().getDisplayName(java.time.format.TextStyle.FULL, spanish);
+        diaSemana = diaSemana.substring(0, 1).toUpperCase() + diaSemana.substring(1);
+
+        String mes = fechaHora.getMonth().getDisplayName(java.time.format.TextStyle.FULL, spanish);
+        mes = mes.substring(0, 1).toUpperCase() + mes.substring(1);
+
+        int dia = fechaHora.getDayOfMonth();
+        int anio = fechaHora.getYear();
+
+        return String.format("%s %d de %s, %d", diaSemana, dia, mes, anio);
+    }
+
+    /**
+     * Formatea una hora (ej: "10:00 AM")
+     */
+    private String formatearHora(java.time.LocalDateTime fechaHora) {
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("hh:mm a", new java.util.Locale("es", "MX"));
+        return fechaHora.format(formatter).toUpperCase();
+    }
+
+    @Transactional
+    public CitaResponse registrarPago(String email, String citaId) {
+        log.info("[CitaService] Registrando pago de cita: {}", citaId);
+
+        // Obtener usuario y validar permisos
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+        // Obtener cita y validar que pertenece al negocio del usuario
+        Cita cita = citaRepository.findById(citaId)
+                .orElseThrow(() -> new NotFoundException("Cita no encontrada"));
+
+        if (!cita.getNegocio().getId().equals(usuario.getNegocio().getId())) {
+            throw new UnauthorizedException("No tienes permiso para modificar esta cita");
+        }
+
+        // Registrar el pago
+        cita.setPagado(true);
+        cita.setFechaPago(LocalDateTime.now());
+
+        Cita citaActualizada = citaRepository.save(cita);
+        log.info("[CitaService] Pago registrado exitosamente para cita: {}", citaId);
+
+        return CitaResponse.fromEntity(citaActualizada);
     }
 
     private CitaResponse mapToResponse(Cita cita) {

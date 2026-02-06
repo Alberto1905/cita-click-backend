@@ -30,4 +30,29 @@ public class PagoResponse {
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaCompletado;
     private String errorMensaje;
+
+    /**
+     * Convierte una entidad Pago a PagoResponse
+     */
+    public static PagoResponse fromEntity(com.reservas.entity.Pago pago) {
+        if (pago == null) {
+            return null;
+        }
+
+        return PagoResponse.builder()
+                .id(pago.getId().toString())
+                .plan(pago.getPlan())
+                .monto(pago.getMonto())
+                .moneda(pago.getMoneda())
+                .estado(pago.getEstado())
+                .metodoPago(pago.getMetodoPago())
+                .descripcion(pago.getDescripcion())
+                .periodoInicio(pago.getPeriodoInicio())
+                .periodoFin(pago.getPeriodoFin())
+                .fechaCreacion(pago.getFechaCreacion())
+                .fechaCompletado(pago.getFechaCompletado())
+                .facturaUrl(pago.getFacturaUrl())
+                .errorMensaje(pago.getErrorMensaje())
+                .build();
+    }
 }

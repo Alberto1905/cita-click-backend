@@ -91,6 +91,14 @@ public class Usuario extends AuditableEntity {
     @Column(name = "token_verificacion_expira")
     private LocalDateTime tokenVerificacionExpira;
 
+    // Trial period fields
+    @Column(name = "trial_used", nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    private boolean trialUsed = false;
+
+    @Column(name = "trial_ends_at")
+    private LocalDateTime trialEndsAt;
+
     /**
      * Método helper para obtener el nombre completo del usuario.
      *

@@ -99,6 +99,10 @@ public class Negocio extends AuditableEntity {
     @Column(name = "stripe_customer_id", unique = true, length = 100)
     private String stripeCustomerId;
 
+    // Stripe Subscription ID
+    @Column(name = "stripe_subscription_id", length = 100)
+    private String stripeSubscriptionId;
+
     // Campos para control de suscripción
     @Column(name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro;

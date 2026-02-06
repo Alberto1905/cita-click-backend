@@ -39,7 +39,7 @@ public class EmailVerificationService {
     }
 
     /**
-     * Envía un email de verificación al usuario
+     * Envía un email de verificación al usuario usando SendGrid Dynamic Template
      */
     @Transactional
     public void enviarEmailVerificacion(Usuario usuario) {
@@ -54,23 +54,8 @@ public class EmailVerificationService {
         // Construir URL de verificación
         String verificationUrl = frontendUrl + "/verify-email?token=" + token;
 
-        // Construir mensaje
-        String asunto = "Verifica tu correo electrónico - Cita Click";
-        String mensaje = String.format(
-                "Hola %s,\n\n" +
-                "Gracias por registrarte en Cita Click.\n\n" +
-                "Para activar tu cuenta, por favor verifica tu correo electrónico haciendo clic en el siguiente enlace:\n\n" +
-                "%s\n\n" +
-                "Este enlace expirará en 24 horas.\n\n" +
-                "Si no creaste esta cuenta, puedes ignorar este mensaje.\n\n" +
-                "Saludos,\n" +
-                "El equipo de Cita Click",
-                usuario.getNombre(),
-                verificationUrl
-        );
-
-        // Enviar email
-        emailService.enviarEmail(usuario.getEmail(), asunto, mensaje);
+        // Enviar email usando el Dynamic Template de SendGrid
+        emailService.enviarEmailVerificacion(usuario.getEmail(), usuario.getNombre(), verificationUrl);
 
         log.info("[Email Verificación] Email de verificación enviado a: {}", usuario.getEmail());
     }

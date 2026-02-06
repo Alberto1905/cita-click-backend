@@ -126,4 +126,12 @@ public class ConnectAccountService {
         return accountRepository.findByUsuarioId(java.util.UUID.fromString(usuarioId))
                 .orElseThrow(() -> new PaymentException("Cuenta no encontrada", "ACCOUNT_NOT_FOUND"));
     }
+
+    /**
+     * Obtiene la cuenta conectada de un usuario (retorna null si no existe).
+     */
+    public StripeConnectedAccount getAccountByUsuarioId(String usuarioId) {
+        return accountRepository.findByUsuarioId(java.util.UUID.fromString(usuarioId))
+                .orElse(null);
+    }
 }

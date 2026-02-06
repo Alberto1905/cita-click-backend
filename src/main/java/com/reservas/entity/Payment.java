@@ -73,6 +73,12 @@ public class Payment {
     private String paymentIntentId;
 
     /**
+     * Client secret del PaymentIntent para confirmación en el cliente.
+     */
+    @Column(name = "client_secret", length = 255)
+    private String clientSecret;
+
+    /**
      * Monto total del pago en la unidad menor de la moneda.
      * Ejemplo: Para USD, $10.50 = 1050 centavos
      */
@@ -176,6 +182,24 @@ public class Payment {
     private BigDecimal amountRefunded;
 
     /**
+     * ID del Refund en Stripe (re_xxxxx).
+     */
+    @Column(name = "refund_id", length = 100)
+    private String refundId;
+
+    /**
+     * Monto del último reembolso.
+     */
+    @Column(name = "refund_amount", precision = 12, scale = 2)
+    private BigDecimal refundAmount;
+
+    /**
+     * Razón del reembolso.
+     */
+    @Column(name = "refund_reason", length = 500)
+    private String refundReason;
+
+    /**
      * Mensaje de error en caso de fallo.
      */
     @Column(name = "error_message", columnDefinition = "TEXT")
@@ -216,6 +240,11 @@ public class Payment {
         SUCCESS,
 
         /**
+         * Pago confirmado y exitoso (alias de SUCCESS)
+         */
+        SUCCEEDED,
+
+        /**
          * Pago rechazado/fallido
          */
         FAILED,
@@ -224,6 +253,11 @@ public class Payment {
          * Pago cancelado antes de confirmarse
          */
         CANCELED,
+
+        /**
+         * Pago reembolsado
+         */
+        REFUNDED,
 
         /**
          * Procesando (estado intermedio)

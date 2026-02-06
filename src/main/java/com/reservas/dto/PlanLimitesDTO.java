@@ -20,8 +20,10 @@ public class PlanLimitesDTO {
     private Integer maxClientes;
     private Integer maxCitasMes;
     private Integer maxServicios;
+    private boolean emailRecordatoriosHabilitado;
     private boolean smsWhatsappHabilitado;
     private boolean reportesAvanzadosHabilitado;
+    private boolean personalizacionEmailHabilitado;
     private boolean soportePrioritario;
 
     // Helpers para mostrar "Ilimitado" en frontend

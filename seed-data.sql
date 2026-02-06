@@ -23,8 +23,10 @@ INSERT INTO tbl_plan_limites (
     max_clientes,
     max_citas_mes,
     max_servicios,
+    email_recordatorios_habilitado,
     sms_whatsapp_habilitado,
     reportes_avanzados_habilitado,
+    personalizacion_email_habilitado,
     soporte_prioritario
 ) VALUES (
     gen_random_uuid(),
@@ -33,8 +35,10 @@ INSERT INTO tbl_plan_limites (
     50,             -- 50 clientes
     100,            -- 100 citas/mes
     10,             -- 10 servicios
+    false,          -- Sin recordatorios por email
     false,          -- Sin WhatsApp/SMS
     false,          -- Sin reportes avanzados
+    false,          -- Sin personalización de plantillas
     false           -- Sin soporte prioritario
 )
 ON CONFLICT (tipo_plan) DO UPDATE SET
@@ -42,8 +46,10 @@ ON CONFLICT (tipo_plan) DO UPDATE SET
     max_clientes = EXCLUDED.max_clientes,
     max_citas_mes = EXCLUDED.max_citas_mes,
     max_servicios = EXCLUDED.max_servicios,
+    email_recordatorios_habilitado = EXCLUDED.email_recordatorios_habilitado,
     sms_whatsapp_habilitado = EXCLUDED.sms_whatsapp_habilitado,
     reportes_avanzados_habilitado = EXCLUDED.reportes_avanzados_habilitado,
+    personalizacion_email_habilitado = EXCLUDED.personalizacion_email_habilitado,
     soporte_prioritario = EXCLUDED.soporte_prioritario;
 
 -- Plan PROFESIONAL
@@ -54,8 +60,10 @@ INSERT INTO tbl_plan_limites (
     max_clientes,
     max_citas_mes,
     max_servicios,
+    email_recordatorios_habilitado,
     sms_whatsapp_habilitado,
     reportes_avanzados_habilitado,
+    personalizacion_email_habilitado,
     soporte_prioritario
 ) VALUES (
     gen_random_uuid(),
@@ -64,8 +72,10 @@ INSERT INTO tbl_plan_limites (
     300,            -- 300 clientes
     500,            -- 500 citas/mes
     30,             -- 30 servicios
+    true,           -- CON recordatorios por email
     false,          -- Sin WhatsApp/SMS (Q2 2026)
-    true,           -- CON reportes avanzados
+    false,          -- Sin reportes avanzados (solo Premium)
+    false,          -- Sin personalización de plantillas (solo Premium)
     false           -- Sin soporte prioritario
 )
 ON CONFLICT (tipo_plan) DO UPDATE SET
@@ -73,8 +83,10 @@ ON CONFLICT (tipo_plan) DO UPDATE SET
     max_clientes = EXCLUDED.max_clientes,
     max_citas_mes = EXCLUDED.max_citas_mes,
     max_servicios = EXCLUDED.max_servicios,
+    email_recordatorios_habilitado = EXCLUDED.email_recordatorios_habilitado,
     sms_whatsapp_habilitado = EXCLUDED.sms_whatsapp_habilitado,
     reportes_avanzados_habilitado = EXCLUDED.reportes_avanzados_habilitado,
+    personalizacion_email_habilitado = EXCLUDED.personalizacion_email_habilitado,
     soporte_prioritario = EXCLUDED.soporte_prioritario;
 
 -- Plan PREMIUM
@@ -85,8 +97,10 @@ INSERT INTO tbl_plan_limites (
     max_clientes,
     max_citas_mes,
     max_servicios,
+    email_recordatorios_habilitado,
     sms_whatsapp_habilitado,
     reportes_avanzados_habilitado,
+    personalizacion_email_habilitado,
     soporte_prioritario
 ) VALUES (
     gen_random_uuid(),
@@ -95,8 +109,10 @@ INSERT INTO tbl_plan_limites (
     999999,         -- Ilimitado
     999999,         -- Ilimitado
     999999,         -- Ilimitado
+    true,           -- CON recordatorios por email
     false,          -- WhatsApp/SMS disponible Q2 2026 (aún no activo)
     true,           -- CON reportes avanzados
+    true,           -- CON personalización de plantillas de email
     true            -- CON soporte prioritario
 )
 ON CONFLICT (tipo_plan) DO UPDATE SET
@@ -104,8 +120,10 @@ ON CONFLICT (tipo_plan) DO UPDATE SET
     max_clientes = EXCLUDED.max_clientes,
     max_citas_mes = EXCLUDED.max_citas_mes,
     max_servicios = EXCLUDED.max_servicios,
+    email_recordatorios_habilitado = EXCLUDED.email_recordatorios_habilitado,
     sms_whatsapp_habilitado = EXCLUDED.sms_whatsapp_habilitado,
     reportes_avanzados_habilitado = EXCLUDED.reportes_avanzados_habilitado,
+    personalizacion_email_habilitado = EXCLUDED.personalizacion_email_habilitado,
     soporte_prioritario = EXCLUDED.soporte_prioritario;
 
 -- ============================================================================

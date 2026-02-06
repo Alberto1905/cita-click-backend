@@ -53,7 +53,9 @@ public class RecordatorioService {
             log.debug("Recordatorio EMAIL creado para cita: {}", cita.getId());
         }
 
-        // Recordatorio por SMS (2 horas antes) - HABILITADO
+        // Recordatorio por SMS (2 horas antes) - DESHABILITADO HASTA TENER CLIENTES
+        // Se activará cuando se configure Twilio y haya clientes reales
+        /*
         if (cita.getCliente().getTelefono() != null && !cita.getCliente().getTelefono().isBlank()) {
             Recordatorio recordatorioSms = Recordatorio.builder()
                     .cita(cita)
@@ -63,6 +65,8 @@ public class RecordatorioService {
             recordatorioRepository.save(recordatorioSms);
             log.debug("Recordatorio SMS creado para cita: {}", cita.getId());
         }
+        */
+        log.debug("⚠️ Recordatorio SMS deshabilitado temporalmente para cita: {}", cita.getId());
 
         log.info("✅ Recordatorios creados para cita: {}", cita.getId());
     }
@@ -155,6 +159,9 @@ public class RecordatorioService {
                 break;
 
             case SMS:
+                // DESHABILITADO TEMPORALMENTE - Se activará cuando se configure Twilio
+                log.info("📱 Recordatorio SMS deshabilitado temporalmente para cita: {}", cita.getId());
+                /*
                 if (cita.getCliente().getTelefono() != null) {
                     enviado = smsService.enviarRecordatorioCita(
                             cita.getCliente().getTelefono(),
@@ -163,6 +170,7 @@ public class RecordatorioService {
                             nombreServicio
                     );
                 }
+                */
                 break;
 
             case WHATSAPP:

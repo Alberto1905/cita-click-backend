@@ -1,0 +1,215 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------< com.citaclick:citaclick-backend >-------------------
+[INFO] Building Cita Click API 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.1:run (default-cli) > test-compile @ citaclick-backend >>>
+[WARNING] The artifact com.itextpdf:itext7-core:pom:8.0.2 has been relocated to com.itextpdf:itext-core:pom:8.0.2
+[INFO] 
+[INFO] --- jacoco:0.8.11:prepare-agent (default) @ citaclick-backend ---
+[INFO] argLine set to -javaagent:/Users/albertoespejel/.m2/repository/org/jacoco/org.jacoco.agent/0.8.11/org.jacoco.agent-0.8.11-runtime.jar=destfile=/Users/albertoespejel/Documents/Develop/SaaS/cita-click/cita-click-backend/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ citaclick-backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 6 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ citaclick-backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ citaclick-backend ---
+[INFO] Copying 1 resource from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ citaclick-backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.1:run (default-cli) < test-compile @ citaclick-backend <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.1:run (default-cli) @ citaclick-backend ---
+[INFO] Attaching agents: []
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.1)
+
+2026-02-05 12:03:48 INFO  [main] c.r.ReservasBackendApplication - Starting ReservasBackendApplication using Java 21.0.7 with PID 55166 (/Users/albertoespejel/Documents/Develop/SaaS/cita-click/cita-click-backend/target/classes started by albertoespejel in /Users/albertoespejel/Documents/Develop/SaaS/cita-click/cita-click-backend)
+2026-02-05 12:03:48 INFO  [main] c.r.ReservasBackendApplication - No active profile set, falling back to 1 default profile: "default"
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+2026-02-05 12:03:50 WARN  [main] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-02-05 12:04:09 INFO  [main] c.r.b.stripe.StripeBillingProvider - [Stripe Billing] Inicializado correctamente
+2026-02-05 12:04:10 INFO  [main] c.r.service.PlanLimitesService - [PlanLimitesService] Verificando límites de planes...
+2026-02-05 12:04:12 INFO  [main] c.r.service.PlanLimitesService - [PlanLimitesService] Verificación de límites completada
+2026-02-05 12:04:12 INFO  [main] c.r.n.twilio.TwilioWhatsAppProvider - [Twilio WhatsApp]  Inicializado correctamente - From: +14155238886
+2026-02-05 12:04:12 INFO  [main] c.r.n.sendgrid.SendGridEmailProvider - [SendGrid]  Inicializado correctamente - From: Cita Click <info@citaclick.com.mx>
+2026-02-05 12:04:12 INFO  [main] c.r.p.stripe.StripePaymentProvider - [Stripe Payment] Inicializado - Comisión por defecto: 5.0%
+2026-02-05 12:04:12 INFO  [main] c.r.service.FileStorageService - Directorio de almacenamiento creado en: /Users/albertoespejel/Documents/Develop/SaaS/cita-click/cita-click-backend/uploads/logos
+2026-02-05 12:04:12 INFO  [main] c.r.p.s.StripeConnectAccountProvider - [Stripe Connect] Inicializado correctamente
+2026-02-05 12:04:12 INFO  [main] com.reservas.service.StripeService - [Stripe] Servicio inicializado con API Key
+2026-02-05 12:04:12 INFO  [main] com.reservas.service.SmsService - ✅ Twilio inicializado correctamente
+2026-02-05 12:04:12 INFO  [main] c.r.ReservasBackendApplication - Started ReservasBackendApplication in 24.321 seconds (process running for 24.459)
+2026-02-05 12:05:33 INFO  [http-nio-8080-exec-3] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 12:05:34 INFO  [http-nio-8080-exec-4] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 12:05:45 INFO  [http-nio-8080-exec-7] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 12:05:46 INFO  [http-nio-8080-exec-10] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:05:46 INFO  [http-nio-8080-exec-3] c.r.controller.PlanesController - 📊 Solicitud para obtener límites del plan
+2026-02-05 12:05:46 INFO  [http-nio-8080-exec-1] c.r.controller.PlanesController - 📈 Solicitud para obtener uso del plan
+2026-02-05 12:05:47 INFO  [http-nio-8080-exec-1] c.r.service.PlanLimitesService - [PlanLimitesService] Obteniendo uso del plan para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:05:47 INFO  [http-nio-8080-exec-3] c.r.service.PlanLimitesService - [PlanLimitesService] Obteniendo límites del plan para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:05:47 INFO  [http-nio-8080-exec-10] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:05:47 INFO  [http-nio-8080-exec-1] c.r.service.PlanLimitesService - [PlanLimitesService] Actualizando uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac
+2026-02-05 12:05:47 INFO  [http-nio-8080-exec-10] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 12:05:47 INFO  [http-nio-8080-exec-1] c.r.service.PlanLimitesService - [PlanLimitesService] Creando nuevo registro de uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac, periodo: 2026-02
+2026-02-05 12:05:47 INFO  [http-nio-8080-exec-3] c.r.controller.PlanesController -  Límites del plan obtenidos: premium
+2026-02-05 12:05:47 INFO  [http-nio-8080-exec-1] c.r.service.PlanLimitesService - [PlanLimitesService] Uso actualizado - Usuarios: 1, Clientes: 1, Citas: 0, Servicios: 1
+2026-02-05 12:05:47 INFO  [http-nio-8080-exec-1] c.r.service.PlanLimitesService - [PlanLimitesService] Creando nuevo registro de uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac, periodo: 2026-02
+2026-02-05 12:05:48 INFO  [http-nio-8080-exec-1] c.r.controller.PlanesController -  Uso del plan obtenido - Periodo: 2026-02
+2026-02-05 12:06:02 INFO  [http-nio-8080-exec-1] c.r.controller.DashboardController - Obteniendo métricas del dashboard para: espejel.alberto1905@gmail.com
+2026-02-05 12:06:02 INFO  [http-nio-8080-exec-7] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:06:03 INFO  [http-nio-8080-exec-4] c.reservas.service.ServicioService - Listando servicios para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:06:03 INFO  [http-nio-8080-exec-1] c.r.service.DashboardMetricasService - Calculando métricas del dashboard para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:06:03 INFO  [http-nio-8080-exec-7] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:06:03 INFO  [http-nio-8080-exec-3] com.reservas.service.ClienteService - Listando clientes para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:06:03 INFO  [http-nio-8080-exec-5] com.reservas.service.CitaService - Listando citas para usuario: espejel.alberto1905@gmail.com - Fecha: null - Estado: null
+2026-02-05 12:06:03 INFO  [http-nio-8080-exec-7] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 12:06:03 INFO  [http-nio-8080-exec-4] c.reservas.service.ServicioService - Todos los servicios obtenidos: 1
+2026-02-05 12:06:03 INFO  [http-nio-8080-exec-3] com.reservas.service.ClienteService - Todos los clientes obtenidos: 1
+2026-02-05 12:06:03 INFO  [http-nio-8080-exec-5] com.reservas.service.CitaService - Citas encontradas: 1
+2026-02-05 12:06:03 INFO  [http-nio-8080-exec-1] c.r.service.DashboardMetricasService - Métricas calculadas exitosamente
+2026-02-05 12:06:04 INFO  [http-nio-8080-exec-6] c.r.controller.PlanesController - 📈 Solicitud para obtener uso del plan
+2026-02-05 12:06:04 INFO  [http-nio-8080-exec-6] c.r.service.PlanLimitesService - [PlanLimitesService] Obteniendo uso del plan para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:06:04 INFO  [http-nio-8080-exec-6] c.r.service.PlanLimitesService - [PlanLimitesService] Actualizando uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac
+2026-02-05 12:06:05 INFO  [http-nio-8080-exec-6] c.r.service.PlanLimitesService - [PlanLimitesService] Creando nuevo registro de uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac, periodo: 2026-02
+2026-02-05 12:06:05 INFO  [http-nio-8080-exec-6] c.r.service.PlanLimitesService - [PlanLimitesService] Uso actualizado - Usuarios: 1, Clientes: 1, Citas: 0, Servicios: 1
+2026-02-05 12:06:05 INFO  [http-nio-8080-exec-6] c.r.service.PlanLimitesService - [PlanLimitesService] Creando nuevo registro de uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac, periodo: 2026-02
+2026-02-05 12:06:05 INFO  [http-nio-8080-exec-6] c.r.controller.PlanesController -  Uso del plan obtenido - Periodo: 2026-02
+2026-02-05 12:06:08 INFO  [http-nio-8080-exec-4] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:06:08 INFO  [http-nio-8080-exec-3] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 12:06:09 INFO  [http-nio-8080-exec-4] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:06:09 INFO  [http-nio-8080-exec-4] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 12:10:42 INFO  [http-nio-8080-exec-6] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 12:10:42 INFO  [http-nio-8080-exec-8] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:10:43 INFO  [http-nio-8080-exec-8] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:10:43 INFO  [http-nio-8080-exec-8] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 12:10:43 INFO  [http-nio-8080-exec-9] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 12:30:00 INFO  [scheduling-1] c.r.scheduler.RecordatorioScheduler - Iniciando procesamiento programado de recordatorios...
+2026-02-05 12:30:00 INFO  [scheduling-1] c.r.service.RecordatorioService - Procesando recordatorios pendientes...
+2026-02-05 12:30:00 INFO  [scheduling-1] c.r.service.RecordatorioService - Recordatorios pendientes encontrados: 0
+2026-02-05 12:30:00 INFO  [scheduling-1] c.r.service.RecordatorioService -  Procesamiento de recordatorios completado
+2026-02-05 12:30:00 INFO  [scheduling-1] c.r.scheduler.RecordatorioScheduler - Procesamiento programado de recordatorios completado
+2026-02-05 12:35:36 INFO  [http-nio-8080-exec-6] c.r.controller.DashboardController - Obteniendo métricas del dashboard para: espejel.alberto1905@gmail.com
+2026-02-05 12:35:36 INFO  [http-nio-8080-exec-3] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:35:36 INFO  [http-nio-8080-exec-1] com.reservas.service.ClienteService - Listando clientes para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:35:36 INFO  [http-nio-8080-exec-4] com.reservas.service.CitaService - Listando citas para usuario: espejel.alberto1905@gmail.com - Fecha: null - Estado: null
+2026-02-05 12:35:36 INFO  [http-nio-8080-exec-6] c.r.service.DashboardMetricasService - Calculando métricas del dashboard para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:35:36 INFO  [http-nio-8080-exec-3] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:35:36 INFO  [http-nio-8080-exec-5] c.reservas.service.ServicioService - Listando servicios para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:35:36 INFO  [http-nio-8080-exec-3] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 12:35:36 INFO  [http-nio-8080-exec-1] com.reservas.service.ClienteService - Todos los clientes obtenidos: 1
+2026-02-05 12:35:36 INFO  [http-nio-8080-exec-4] com.reservas.service.CitaService - Citas encontradas: 1
+2026-02-05 12:35:36 INFO  [http-nio-8080-exec-5] c.reservas.service.ServicioService - Todos los servicios obtenidos: 1
+2026-02-05 12:35:36 INFO  [http-nio-8080-exec-6] c.r.service.DashboardMetricasService - Métricas calculadas exitosamente
+2026-02-05 12:35:37 INFO  [http-nio-8080-exec-10] c.r.controller.PlanesController - 📈 Solicitud para obtener uso del plan
+2026-02-05 12:35:37 INFO  [http-nio-8080-exec-10] c.r.service.PlanLimitesService - [PlanLimitesService] Obteniendo uso del plan para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:35:38 INFO  [http-nio-8080-exec-10] c.r.service.PlanLimitesService - [PlanLimitesService] Actualizando uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac
+2026-02-05 12:35:38 INFO  [http-nio-8080-exec-10] c.r.service.PlanLimitesService - [PlanLimitesService] Creando nuevo registro de uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac, periodo: 2026-02
+2026-02-05 12:35:38 INFO  [http-nio-8080-exec-10] c.r.service.PlanLimitesService - [PlanLimitesService] Uso actualizado - Usuarios: 1, Clientes: 1, Citas: 0, Servicios: 1
+2026-02-05 12:35:38 INFO  [http-nio-8080-exec-10] c.r.service.PlanLimitesService - [PlanLimitesService] Creando nuevo registro de uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac, periodo: 2026-02
+2026-02-05 12:35:38 INFO  [http-nio-8080-exec-10] c.r.controller.PlanesController -  Uso del plan obtenido - Periodo: 2026-02
+2026-02-05 12:42:25 INFO  [http-nio-8080-exec-4] c.r.controller.DashboardController - Obteniendo métricas del dashboard para: espejel.alberto1905@gmail.com
+2026-02-05 12:42:25 INFO  [http-nio-8080-exec-5] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:42:26 INFO  [http-nio-8080-exec-8] c.reservas.service.ServicioService - Listando servicios para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:42:26 INFO  [http-nio-8080-exec-6] com.reservas.service.CitaService - Listando citas para usuario: espejel.alberto1905@gmail.com - Fecha: null - Estado: null
+2026-02-05 12:42:26 INFO  [http-nio-8080-exec-5] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:42:26 INFO  [http-nio-8080-exec-1] com.reservas.service.ClienteService - Listando clientes para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:42:26 INFO  [http-nio-8080-exec-4] c.r.service.DashboardMetricasService - Calculando métricas del dashboard para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:42:26 INFO  [http-nio-8080-exec-5] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 12:42:26 INFO  [http-nio-8080-exec-8] c.reservas.service.ServicioService - Todos los servicios obtenidos: 1
+2026-02-05 12:42:26 INFO  [http-nio-8080-exec-6] com.reservas.service.CitaService - Citas encontradas: 1
+2026-02-05 12:42:26 INFO  [http-nio-8080-exec-1] com.reservas.service.ClienteService - Todos los clientes obtenidos: 1
+2026-02-05 12:42:26 INFO  [http-nio-8080-exec-4] c.r.service.DashboardMetricasService - Métricas calculadas exitosamente
+2026-02-05 12:42:27 INFO  [http-nio-8080-exec-7] c.r.controller.PlanesController - 📈 Solicitud para obtener uso del plan
+2026-02-05 12:42:27 INFO  [http-nio-8080-exec-7] c.r.service.PlanLimitesService - [PlanLimitesService] Obteniendo uso del plan para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:42:27 INFO  [http-nio-8080-exec-7] c.r.service.PlanLimitesService - [PlanLimitesService] Actualizando uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac
+2026-02-05 12:42:27 INFO  [http-nio-8080-exec-7] c.r.service.PlanLimitesService - [PlanLimitesService] Creando nuevo registro de uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac, periodo: 2026-02
+2026-02-05 12:42:27 INFO  [http-nio-8080-exec-7] c.r.service.PlanLimitesService - [PlanLimitesService] Uso actualizado - Usuarios: 1, Clientes: 1, Citas: 0, Servicios: 1
+2026-02-05 12:42:27 INFO  [http-nio-8080-exec-7] c.r.service.PlanLimitesService - [PlanLimitesService] Creando nuevo registro de uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac, periodo: 2026-02
+2026-02-05 12:42:28 INFO  [http-nio-8080-exec-7] c.r.controller.PlanesController -  Uso del plan obtenido - Periodo: 2026-02
+2026-02-05 12:59:06 INFO  [http-nio-8080-exec-6] com.reservas.service.AuthService - Login exitoso: espejel.alberto1905@gmail.com
+2026-02-05 12:59:06 INFO  [http-nio-8080-exec-6] c.reservas.controller.AuthController - Login exitoso para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:59:06 INFO  [http-nio-8080-exec-7] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:59:06 INFO  [http-nio-8080-exec-3] c.r.controller.DashboardController - Obteniendo métricas del dashboard para: espejel.alberto1905@gmail.com
+2026-02-05 12:59:07 INFO  [http-nio-8080-exec-9] com.reservas.service.CitaService - Listando citas para usuario: espejel.alberto1905@gmail.com - Fecha: null - Estado: null
+2026-02-05 12:59:07 INFO  [http-nio-8080-exec-3] c.r.service.DashboardMetricasService - Calculando métricas del dashboard para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:59:07 INFO  [http-nio-8080-exec-2] com.reservas.service.ClienteService - Listando clientes para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:59:07 INFO  [http-nio-8080-exec-7] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 12:59:07 INFO  [http-nio-8080-exec-10] c.reservas.service.ServicioService - Listando servicios para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:59:07 INFO  [http-nio-8080-exec-7] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 12:59:07 INFO  [http-nio-8080-exec-9] com.reservas.service.CitaService - Citas encontradas: 1
+2026-02-05 12:59:07 INFO  [http-nio-8080-exec-10] c.reservas.service.ServicioService - Todos los servicios obtenidos: 1
+2026-02-05 12:59:07 INFO  [http-nio-8080-exec-2] com.reservas.service.ClienteService - Todos los clientes obtenidos: 1
+2026-02-05 12:59:07 INFO  [http-nio-8080-exec-3] c.r.service.DashboardMetricasService - Métricas calculadas exitosamente
+2026-02-05 12:59:08 INFO  [http-nio-8080-exec-5] c.r.controller.PlanesController - 📈 Solicitud para obtener uso del plan
+2026-02-05 12:59:08 INFO  [http-nio-8080-exec-5] c.r.service.PlanLimitesService - [PlanLimitesService] Obteniendo uso del plan para usuario: espejel.alberto1905@gmail.com
+2026-02-05 12:59:08 INFO  [http-nio-8080-exec-5] c.r.service.PlanLimitesService - [PlanLimitesService] Actualizando uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac
+2026-02-05 12:59:08 INFO  [http-nio-8080-exec-5] c.r.service.PlanLimitesService - [PlanLimitesService] Creando nuevo registro de uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac, periodo: 2026-02
+2026-02-05 12:59:09 INFO  [http-nio-8080-exec-5] c.r.service.PlanLimitesService - [PlanLimitesService] Uso actualizado - Usuarios: 1, Clientes: 1, Citas: 0, Servicios: 1
+2026-02-05 12:59:09 INFO  [http-nio-8080-exec-5] c.r.service.PlanLimitesService - [PlanLimitesService] Creando nuevo registro de uso para negocio: 44dbdc40-e631-4208-8c56-ee46dec5c1ac, periodo: 2026-02
+2026-02-05 12:59:09 INFO  [http-nio-8080-exec-5] c.r.controller.PlanesController -  Uso del plan obtenido - Periodo: 2026-02
+2026-02-05 13:11:03 INFO  [scheduling-1] c.r.scheduler.RecordatorioScheduler - Iniciando procesamiento programado de recordatorios...
+2026-02-05 13:11:04 INFO  [scheduling-1] c.r.service.RecordatorioService - Procesando recordatorios pendientes...
+2026-02-05 13:11:04 INFO  [scheduling-1] c.r.service.RecordatorioService - Recordatorios pendientes encontrados: 0
+2026-02-05 13:11:04 INFO  [scheduling-1] c.r.service.RecordatorioService -  Procesamiento de recordatorios completado
+2026-02-05 13:11:04 INFO  [scheduling-1] c.r.scheduler.RecordatorioScheduler - Procesamiento programado de recordatorios completado
+2026-02-05 13:20:04 INFO  [http-nio-8080-exec-9] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 13:20:04 INFO  [http-nio-8080-exec-3] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 13:20:04 INFO  [http-nio-8080-exec-3] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 13:20:04 INFO  [http-nio-8080-exec-3] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 13:24:19 INFO  [http-nio-8080-exec-8] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 13:24:19 INFO  [http-nio-8080-exec-1] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 13:24:20 INFO  [http-nio-8080-exec-8] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 13:24:20 INFO  [http-nio-8080-exec-8] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 13:38:20 INFO  [http-nio-8080-exec-10] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 13:38:20 INFO  [http-nio-8080-exec-2] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 13:38:21 INFO  [http-nio-8080-exec-10] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 13:38:21 INFO  [http-nio-8080-exec-10] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 14:00:47 INFO  [scheduling-1] c.r.scheduler.RecordatorioScheduler - Iniciando procesamiento programado de recordatorios...
+2026-02-05 14:00:48 INFO  [scheduling-1] c.r.service.RecordatorioService - Procesando recordatorios pendientes...
+2026-02-05 14:00:48 INFO  [scheduling-1] c.r.service.RecordatorioService - Recordatorios pendientes encontrados: 0
+2026-02-05 14:00:48 INFO  [scheduling-1] c.r.service.RecordatorioService -  Procesamiento de recordatorios completado
+2026-02-05 14:00:48 INFO  [scheduling-1] c.r.scheduler.RecordatorioScheduler - Procesamiento programado de recordatorios completado
+2026-02-05 14:02:56 INFO  [http-nio-8080-exec-5] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 14:02:56 INFO  [http-nio-8080-exec-4] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 14:02:57 INFO  [http-nio-8080-exec-4] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 14:02:57 INFO  [http-nio-8080-exec-4] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 14:22:33 INFO  [http-nio-8080-exec-7] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 14:22:33 INFO  [http-nio-8080-exec-6] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 14:22:34 INFO  [http-nio-8080-exec-7] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 14:22:34 INFO  [http-nio-8080-exec-7] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 14:27:27 INFO  [http-nio-8080-exec-9] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 14:27:27 INFO  [http-nio-8080-exec-3] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 14:27:28 INFO  [http-nio-8080-exec-3] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 14:27:28 INFO  [http-nio-8080-exec-3] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+2026-02-05 15:07:00 INFO  [http-nio-8080-exec-8] c.r.controller.StripeController - [StripeController] GET /api/pagos/planes
+2026-02-05 15:07:00 INFO  [http-nio-8080-exec-1] c.r.controller.SuscripcionController - [SuscripcionController] Solicitando info de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 15:07:01 INFO  [http-nio-8080-exec-1] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Obteniendo información de suscripción para: espejel.alberto1905@gmail.com
+2026-02-05 15:07:01 INFO  [http-nio-8080-exec-1] c.r.service.SuscripcionInfoService - [SuscripcionInfoService] Información obtenida exitosamente - Plan: PREMIUM, Estado: trial
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  03:23 h
+[INFO] Finished at: 2026-02-05T15:26:48-06:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.2.1:run (default-cli) on project citaclick-backend: Process terminated with exit code: 143 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

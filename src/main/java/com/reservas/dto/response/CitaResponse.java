@@ -49,6 +49,8 @@ public class CitaResponse {
     private String citaPadreId;
     private LocalDateTime fechaFin;
     private BigDecimal precio;
+    private Boolean pagado;
+    private LocalDateTime fechaPago;
 
     @Data
     @Builder
@@ -125,6 +127,9 @@ public class CitaResponse {
                 .numeroOcurrencias(cita.getNumeroOcurrencias())
                 .diasSemana(cita.getDiasSemana())
                 .citaPadreId(cita.getCitaPadreId())
+                // Pago
+                .pagado(cita.isPagado())
+                .fechaPago(cita.getFechaPago())
                 // Metadata
                 .createdAt(cita.getCreatedAt())
                 .updatedAt(cita.getUpdatedAt())

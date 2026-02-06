@@ -96,6 +96,26 @@ public class StripeController {
     }
 
     /**
+     * GET /api/pagos/estadisticas
+     * Obtiene estadísticas de pagos del negocio
+     */
+    @GetMapping("/estadisticas")
+    @Operation(summary = "Estadísticas de pagos", description = "Obtiene estadísticas de pagos del negocio")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> obtenerEstadisticas(
+            Authentication authentication
+    ) {
+        log.info("[StripeController] GET /api/pagos/estadisticas - Usuario: {}", authentication.getName());
+
+        Map<String, Object> estadisticas = stripeService.obtenerEstadisticas(authentication.getName());
+
+        return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
+                .success(true)
+                .message("Estadísticas obtenidas exitosamente")
+                .data(estadisticas)
+                .build());
+    }
+
+    /**
      * GET /api/pagos/planes
      * Obtiene la información de los planes disponibles
      */

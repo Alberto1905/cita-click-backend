@@ -1,0 +1,69 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------< com.citaclick:citaclick-backend >-------------------
+[INFO] Building Cita Click API 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.1:run (default-cli) > test-compile @ citaclick-backend >>>
+[WARNING] The artifact com.itextpdf:itext7-core:pom:8.0.2 has been relocated to com.itextpdf:itext-core:pom:8.0.2
+[INFO] 
+[INFO] --- jacoco:0.8.11:prepare-agent (default) @ citaclick-backend ---
+[INFO] argLine set to -javaagent:/Users/albertoespejel/.m2/repository/org/jacoco/org.jacoco.agent/0.8.11/org.jacoco.agent-0.8.11-runtime.jar=destfile=/Users/albertoespejel/Documents/Develop/SaaS/cita-click/cita-click-backend/target/jacoco.exec
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ citaclick-backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 6 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ citaclick-backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ citaclick-backend ---
+[INFO] Copying 1 resource from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ citaclick-backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.1:run (default-cli) < test-compile @ citaclick-backend <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.1:run (default-cli) @ citaclick-backend ---
+[INFO] Attaching agents: []
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.1)
+
+2026-01-30 17:50:18 INFO  [main] c.r.ReservasBackendApplication - Starting ReservasBackendApplication using Java 21.0.7 with PID 53882 (/Users/albertoespejel/Documents/Develop/SaaS/cita-click/cita-click-backend/target/classes started by albertoespejel in /Users/albertoespejel/Documents/Develop/SaaS/cita-click/cita-click-backend)
+2026-01-30 17:50:18 INFO  [main] c.r.ReservasBackendApplication - No active profile set, falling back to 1 default profile: "default"
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+2026-01-30 17:50:20 WARN  [main] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-30 17:50:26 INFO  [main] c.r.b.stripe.StripeBillingProvider - [Stripe Billing] Inicializado correctamente
+2026-01-30 17:50:26 INFO  [main] c.r.service.PlanLimitesService - [PlanLimitesService] Verificando límites de planes...
+2026-01-30 17:50:28 INFO  [main] c.r.service.PlanLimitesService - [PlanLimitesService] Verificación de límites completada
+2026-01-30 17:50:28 INFO  [main] c.r.n.twilio.TwilioWhatsAppProvider - [Twilio WhatsApp]  Inicializado correctamente - From: +14155238886
+2026-01-30 17:50:28 INFO  [main] c.r.n.sendgrid.SendGridEmailProvider - [SendGrid]  Inicializado correctamente - From: Cita Click <info@citaclick.com.mx>
+2026-01-30 17:50:28 INFO  [main] c.r.p.stripe.StripePaymentProvider - [Stripe Payment] Inicializado - Comisión por defecto: 5.0%
+2026-01-30 17:50:28 INFO  [main] c.r.service.FileStorageService - Directorio de almacenamiento creado en: /Users/albertoespejel/Documents/Develop/SaaS/cita-click/cita-click-backend/uploads/logos
+2026-01-30 17:50:28 INFO  [main] c.r.p.s.StripeConnectAccountProvider - [Stripe Connect] Inicializado correctamente
+2026-01-30 17:50:28 INFO  [main] com.reservas.service.StripeService - [Stripe] Servicio inicializado con API Key
+2026-01-30 17:50:28 INFO  [main] com.reservas.service.SmsService - ✅ Twilio inicializado correctamente
+2026-01-30 17:50:28 INFO  [main] c.r.ReservasBackendApplication - Started ReservasBackendApplication in 10.466 seconds (process running for 10.597)
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  55.059 s
+[INFO] Finished at: 2026-01-30T17:51:12-06:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.2.1:run (default-cli) on project citaclick-backend: Process terminated with exit code: 143 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

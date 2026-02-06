@@ -54,6 +54,10 @@ public class PlanLimites {
     @Column(name = "max_servicios", nullable = false)
     private Integer maxServicios;
 
+    @Column(name = "email_recordatorios_habilitado", nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    private boolean emailRecordatoriosHabilitado = false;
+
     @Column(name = "sms_whatsapp_habilitado", nullable = false, columnDefinition = "boolean default false")
     @Builder.Default
     private boolean smsWhatsappHabilitado = false;
@@ -61,6 +65,10 @@ public class PlanLimites {
     @Column(name = "reportes_avanzados_habilitado", nullable = false, columnDefinition = "boolean default false")
     @Builder.Default
     private boolean reportesAvanzadosHabilitado = false;
+
+    @Column(name = "personalizacion_email_habilitado", nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    private boolean personalizacionEmailHabilitado = false;
 
     @Column(name = "soporte_prioritario", nullable = false, columnDefinition = "boolean default false")
     @Builder.Default

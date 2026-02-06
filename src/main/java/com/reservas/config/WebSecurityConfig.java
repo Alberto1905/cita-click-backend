@@ -49,8 +49,12 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5174", "http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:3000"
+        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
@@ -84,6 +88,8 @@ public class WebSecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         // Stripe Webhooks (NO debe tener autenticación JWT)
                         .requestMatchers(HttpMethod.POST, "/webhooks/stripe").permitAll()
+                        // Twilio Webhooks (NO debe tener autenticación JWT)
+                        .requestMatchers(HttpMethod.POST, "/webhooks/twilio/**").permitAll()
                         // Todas las demás rutas requieren autenticación
                         .anyRequest().authenticated()
                 )

@@ -59,11 +59,12 @@ public class ClientePerfil360Service {
         }
 
         // Obtener todas las citas del cliente
+        UUID clienteUuid = UUID.fromString(clienteId);
         List<Cita> todasLasCitas = citaRepository.findByNegocio(negocio).stream()
-                .filter(c -> c.getCliente().getId().equals(clienteId))
+                .filter(c -> c.getCliente().getId().equals(clienteUuid))
                 .collect(Collectors.toList());
 
-        log.info("[Perfil 360] Total de citas encontradas: {}", todasLasCitas.size());
+        log.info("[Perfil 360] Total de citas encontradas para cliente {}: {}", clienteId, todasLasCitas.size());
 
         // Construir nombre completo
         String nombreCompleto = cliente.getNombre() + " " + cliente.getApellidoPaterno();

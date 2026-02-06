@@ -74,10 +74,10 @@ public class TwilioWhatsAppProvider implements NotificationProvider {
             // Validar que el número tenga formato correcto
             String recipient = formatPhoneNumber(request.getRecipient());
 
-            // Crear mensaje
+            // Crear mensaje - Ambos números deben tener prefijo "whatsapp:"
             Message message = Message.creator(
                     new PhoneNumber("whatsapp:" + recipient),
-                    new PhoneNumber(whatsappFrom),
+                    new PhoneNumber("whatsapp:" + whatsappFrom),
                     request.getContent()
             ).create();
 
