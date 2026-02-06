@@ -10,7 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Servicio para gestión de recordatorios de citas
@@ -39,7 +42,7 @@ public class RecordatorioService {
     public void crearRecordatoriosParaCita(Cita cita) {
         log.info("Creando recordatorios para cita: {}", cita.getId());
 
-        // Recordatorio por Email (24 horas antes)
+        // Recordatorio por Email (24 horas antes) - HABILITADO
         if (cita.getCliente().getEmail() != null && !cita.getCliente().getEmail().isBlank()) {
             Recordatorio recordatorioEmail = Recordatorio.builder()
                     .cita(cita)
@@ -50,7 +53,7 @@ public class RecordatorioService {
             log.debug("Recordatorio EMAIL creado para cita: {}", cita.getId());
         }
 
-        // Recordatorio por SMS (2 horas antes)
+        // Recordatorio por SMS (2 horas antes) - HABILITADO
         if (cita.getCliente().getTelefono() != null && !cita.getCliente().getTelefono().isBlank()) {
             Recordatorio recordatorioSms = Recordatorio.builder()
                     .cita(cita)
@@ -61,7 +64,7 @@ public class RecordatorioService {
             log.debug("Recordatorio SMS creado para cita: {}", cita.getId());
         }
 
-        log.info(" Recordatorios creados para cita: {}", cita.getId());
+        log.info("✅ Recordatorios creados para cita: {}", cita.getId());
     }
 
     /**
@@ -98,14 +101,42 @@ public class RecordatorioService {
     }
 
     /**
+     * Formatea una fecha en español (ej: "Lunes 20 de Enero, 2026")
+     */
+    private String formatearFecha(LocalDateTime fechaHora) {
+        Locale spanish = new Locale("es", "MX");
+
+        String diaSemana = fechaHora.getDayOfWeek().getDisplayName(TextStyle.FULL, spanish);
+        diaSemana = diaSemana.substring(0, 1).toUpperCase() + diaSemana.substring(1);
+
+        String mes = fechaHora.getMonth().getDisplayName(TextStyle.FULL, spanish);
+        mes = mes.substring(0, 1).toUpperCase() + mes.substring(1);
+
+        int dia = fechaHora.getDayOfMonth();
+        int anio = fechaHora.getYear();
+
+        return String.format("%s %d de %s, %d", diaSemana, dia, mes, anio);
+    }
+
+    /**
+     * Formatea una hora (ej: "10:00 AM")
+     */
+    private String formatearHora(LocalDateTime fechaHora) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a", new Locale("es", "MX"));
+        return fechaHora.format(formatter).toUpperCase();
+    }
+
+    /**
      * Envía un recordatorio específico
      * @param recordatorio Recordatorio a enviar
      */
     private void enviarRecordatorio(Recordatorio recordatorio) {
         Cita cita = recordatorio.getCita();
         String nombreCliente = cita.getCliente().getNombre() + " " + cita.getCliente().getApellidoPaterno();
-        String fechaHora = cita.getFechaHora().toString();
+        String fechaCita = formatearFecha(cita.getFechaHora());
+        String horaCita = formatearHora(cita.getFechaHora());
         String nombreServicio = cita.getServicio().getNombre();
+        String nombreNegocio = cita.getNegocio().getNombre();
 
         boolean enviado = false;
 
@@ -115,9 +146,10 @@ public class RecordatorioService {
                     enviado = emailService.enviarRecordatorioCita(
                             cita.getCliente().getEmail(),
                             nombreCliente,
-                            fechaHora,
+                            fechaCita,
+                            horaCita,
                             nombreServicio,
-                            cita.getNegocio().getNombre()
+                            nombreNegocio
                     );
                 }
                 break;
@@ -127,22 +159,27 @@ public class RecordatorioService {
                     enviado = smsService.enviarRecordatorioCita(
                             cita.getCliente().getTelefono(),
                             nombreCliente,
-                            fechaHora,
+                            fechaCita + " " + horaCita,
                             nombreServicio
                     );
                 }
                 break;
 
             case WHATSAPP:
+                // DESHABILITADO TEMPORALMENTE - Próximamente disponible
+                log.info("💬 Recordatorio WhatsApp deshabilitado temporalmente para cita: {}", cita.getId());
+                /*
                 if (cita.getCliente().getTelefono() != null) {
                     String mensaje = String.format(
-                            "Hola %s, te recordamos tu cita de %s para el %s. ¡Te esperamos!",
+                            "Hola %s, te recordamos tu cita de %s para el %s a las %s. ¡Te esperamos!",
                             nombreCliente,
                             nombreServicio,
-                            fechaHora
+                            fechaCita,
+                            horaCita
                     );
                     enviado = smsService.enviarWhatsApp(cita.getCliente().getTelefono(), mensaje);
                 }
+                */
                 break;
         }
 
@@ -150,9 +187,9 @@ public class RecordatorioService {
             recordatorio.setEnviado(true);
             recordatorio.setFechaEnvio(LocalDateTime.now());
             recordatorioRepository.save(recordatorio);
-            log.info(" Recordatorio {} enviado para cita: {}", recordatorio.getTipo(), cita.getId());
+            log.info("✅ Recordatorio {} enviado para cita: {}", recordatorio.getTipo(), cita.getId());
         } else {
-            log.warn(" No se pudo enviar recordatorio {} para cita: {}", recordatorio.getTipo(), cita.getId());
+            log.warn("⚠️ No se pudo enviar recordatorio {} para cita: {}", recordatorio.getTipo(), cita.getId());
         }
     }
 

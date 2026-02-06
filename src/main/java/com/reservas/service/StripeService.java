@@ -31,6 +31,7 @@ import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -100,19 +101,24 @@ public class StripeService {
             // Obtener el Price ID según el plan
             String priceId = getPriceIdForPlan(request.getPlan());
 
+            // Verificar si el usuario ya usó su período de prueba
+            boolean aplicarTrial = !usuario.isTrialUsed();
+
             // Crear metadata
             Map<String, String> metadata = new HashMap<>();
             metadata.put("negocio_id", negocio.getId().toString());
+            metadata.put("usuario_id", usuario.getId().toString());
             metadata.put("plan", request.getPlan());
             metadata.put("email", emailUsuario);
+            metadata.put("trial_applied", String.valueOf(aplicarTrial));
             if (request.getReferencia() != null) {
                 metadata.put("referencia", request.getReferencia());
             }
 
-            // Crear sesión de checkout
-            SessionCreateParams params = SessionCreateParams.builder()
+            // Crear sesión de checkout para SUSCRIPCIÓN
+            SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
                     .setUiMode(SessionCreateParams.UiMode.EMBEDDED) // Checkout embebido
-                    .setMode(SessionCreateParams.Mode.PAYMENT) // Pago único
+                    .setMode(SessionCreateParams.Mode.SUBSCRIPTION) // Suscripción recurrente
                     .setCustomer(customerId)
                     .setReturnUrl(successUrl + "?session_id={CHECKOUT_SESSION_ID}")
                     .putAllMetadata(metadata)
@@ -126,8 +132,22 @@ public class StripeService {
                             SessionCreateParams.AutomaticTax.builder()
                                     .setEnabled(true)
                                     .build()
-                    )
-                    .build();
+                    );
+
+            // Agregar trial solo si el usuario no lo ha usado antes
+            if (aplicarTrial) {
+                paramsBuilder.setSubscriptionData(
+                        SessionCreateParams.SubscriptionData.builder()
+                                .setTrialPeriodDays(7L) // 7 días de prueba
+                                .putMetadata("trial_granted", "true")
+                                .build()
+                );
+                log.info("[Stripe] Aplicando período de prueba de 7 días para usuario: {}", emailUsuario);
+            } else {
+                log.info("[Stripe] Usuario ya usó su período de prueba, cobrando inmediatamente: {}", emailUsuario);
+            }
+
+            SessionCreateParams params = paramsBuilder.build();
 
             Session session = Session.create(params);
 
@@ -286,6 +306,34 @@ public class StripeService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Obtiene estadísticas de pagos del negocio
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> obtenerEstadisticas(String emailUsuario) {
+        log.info("[Stripe] Obteniendo estadísticas de pagos para: {}", emailUsuario);
+
+        Usuario usuario = usuarioRepository.findByEmailWithNegocio(emailUsuario)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+        Negocio negocio = usuario.getNegocio();
+        if (negocio == null) {
+            throw new NotFoundException("Negocio no encontrado para el usuario");
+        }
+
+        long totalPagos = pagoRepository.countPagosCompletadosByNegocio(negocio);
+        BigDecimal montoTotal = pagoRepository.sumMontoByNegocioAndEstadoCompleted(negocio);
+
+        if (montoTotal == null) {
+            montoTotal = BigDecimal.ZERO;
+        }
+
+        return Map.of(
+                "totalPagos", totalPagos,
+                "montoTotal", montoTotal
+        );
+    }
+
     // ==================== Métodos auxiliares ====================
 
     /**
@@ -346,5 +394,55 @@ public class StripeService {
                 .fechaCompletado(pago.getFechaCompletado())
                 .errorMensaje(pago.getErrorMensaje())
                 .build();
+    }
+
+    /**
+     * Procesa la creación de una suscripción cuando se completa el checkout
+     */
+    @Transactional
+    public void procesarSuscripcionCreada(com.stripe.model.checkout.Session session) {
+        log.info("[Stripe] Procesando suscripción creada - Session: {}", session.getId());
+
+        try {
+            // Obtener metadata
+            String usuarioId = session.getMetadata().get("usuario_id");
+            String negocioId = session.getMetadata().get("negocio_id");
+            String plan = session.getMetadata().get("plan");
+            String trialApplied = session.getMetadata().get("trial_applied");
+
+            if (usuarioId == null || negocioId == null) {
+                log.error("[Stripe] Metadata incompleta en la sesión");
+                return;
+            }
+
+            // Obtener usuario
+            Usuario usuario = usuarioRepository.findById(UUID.fromString(usuarioId))
+                    .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+            // Marcar trial como usado si se aplicó
+            if ("true".equals(trialApplied) && !usuario.isTrialUsed()) {
+                usuario.setTrialUsed(true);
+                usuario.setTrialEndsAt(LocalDateTime.now().plusDays(7));
+                usuarioRepository.save(usuario);
+                log.info("[Stripe] Trial marcado como usado para usuario: {}", usuario.getEmail());
+            }
+
+            // Obtener el negocio
+            Negocio negocio = negocioRepository.findById(UUID.fromString(negocioId))
+                    .orElseThrow(() -> new NotFoundException("Negocio no encontrado"));
+
+            // Activar suscripción
+            suscripcionService.activarSuscripcion(negocioId, plan);
+
+            // Guardar subscription ID en el negocio
+            negocio.setStripeSubscriptionId(session.getSubscription());
+            negocioRepository.save(negocio);
+
+            log.info("[Stripe] ✅ Suscripción activada para negocio: {} - Plan: {}", negocio.getNombre(), plan);
+
+        } catch (Exception e) {
+            log.error("[Stripe] Error procesando suscripción creada", e);
+            throw new RuntimeException("Error al procesar suscripción: " + e.getMessage());
+        }
     }
 }

@@ -2,12 +2,14 @@ package com.reservas.service;
 
 import com.reservas.dto.request.ClienteRequest;
 import com.reservas.dto.response.ClienteResponse;
+import com.reservas.entity.Cita;
 import com.reservas.entity.Cliente;
 import com.reservas.entity.Negocio;
 import com.reservas.entity.Usuario;
 import com.reservas.exception.BadRequestException;
 import com.reservas.exception.NotFoundException;
 import com.reservas.exception.UnauthorizedException;
+import com.reservas.repository.CitaRepository;
 import com.reservas.repository.ClienteRepository;
 import com.reservas.repository.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,9 @@ public class ClienteService {
 
     @Autowired
     private PlanLimitesService planLimitesService;
+
+    @Autowired
+    private CitaRepository citaRepository;
 
     @Transactional
     public ClienteResponse crearCliente(String email, ClienteRequest request) {
@@ -174,8 +179,20 @@ public class ClienteService {
             throw new UnauthorizedException("No tienes permiso para eliminar este cliente");
         }
 
-        // TODO: Verificar que no tenga citas pendientes antes de eliminar
-        // Por ahora solo eliminamos
+        // Validar que no tenga citas pendientes o confirmadas
+        List<Cita> citasPendientes = citaRepository.findByNegocio(cliente.getNegocio()).stream()
+                .filter(c -> c.getCliente().getId().equals(cliente.getId()))
+                .filter(c -> c.getEstado() == Cita.EstadoCita.PENDIENTE ||
+                            c.getEstado() == Cita.EstadoCita.CONFIRMADA)
+                .collect(Collectors.toList());
+
+        if (!citasPendientes.isEmpty()) {
+            throw new BadRequestException(
+                "No se puede eliminar el cliente porque tiene " + citasPendientes.size() +
+                " cita(s) pendiente(s) o confirmada(s). Por favor, cancela o completa estas citas primero."
+            );
+        }
+
         clienteRepository.delete(cliente);
         log.info(" Cliente eliminado: {}", clienteId);
     }
@@ -197,7 +214,7 @@ public class ClienteService {
                 .fechaNacimiento(cliente.getFechaNacimiento())
                 .genero(cliente.getGenero())
                 .notas(cliente.getNotas())
-                .totalCitas(0) // TODO: Calcular del repositorio
+                .totalCitas((int) citaRepository.countByClienteId(cliente.getId()))
                 .build();
     }
 }

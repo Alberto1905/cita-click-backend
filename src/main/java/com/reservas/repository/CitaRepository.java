@@ -84,4 +84,8 @@ public interface CitaRepository extends JpaRepository<Cita, String> {
         @Param("citaPadreId") String citaPadreId,
         @Param("fecha") LocalDateTime fecha
     );
+
+    // Contar citas por cliente
+    @Query("SELECT COUNT(c) FROM Cita c WHERE c.cliente.id = :clienteId")
+    long countByClienteId(@Param("clienteId") UUID clienteId);
 }
