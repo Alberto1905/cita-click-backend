@@ -188,6 +188,14 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Mockito Inline para Java 23 - Permite mockear clases finales y con Lombok -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-inline</artifactId>
+			<version>5.2.0</version>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- Spring AOP para anotaciones personalizadas -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

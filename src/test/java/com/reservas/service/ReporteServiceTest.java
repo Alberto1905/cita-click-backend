@@ -87,6 +87,9 @@ class ReporteServiceTest {
                 .telefono("1234567890")
                 .negocio(negocioMock)
                 .build();
+        // Fix: Inicializar campos de auditoría para evitar NullPointerException
+        clienteMock.setCreatedAt(LocalDateTime.now().minusDays(30));
+        clienteMock.setUpdatedAt(LocalDateTime.now());
 
         servicioMock = Servicio.builder()
                 .id(UUID.randomUUID())

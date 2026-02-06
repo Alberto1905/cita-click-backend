@@ -1,0 +1,172 @@
+# ============================================================================
+# CONFIGURACIÓN DE PRODUCCIÓN - CITA CLICK
+# ============================================================================
+# Este archivo se activa con: SPRING_PROFILES_ACTIVE=prod
+# Variables se inyectan desde variables de entorno del servidor
+
+spring:
+  application:
+    name: citaclick-api-prod
+
+  # ============================================================================
+  # DATABASE - PostgreSQL en Producción
+  # ============================================================================
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    type: org.springframework.jdbc.datasource.DriverManagerDataSource
+
+  # ============================================================================
+  # JPA - PRODUCCIÓN (Solo validar, NO modificar schema)
+  # ============================================================================
+  jpa:
+    hibernate:
+      ddl-auto: validate  # CRÍTICO: Solo validar, nunca modificar BD en prod
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: ccdiad
+        format_sql: false
+        jdbc:
+          time_zone: America/Mexico_City
+    open-in-view: false
+
+# ============================================================================
+# SERVER
+# ============================================================================
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+
+# ============================================================================
+# LOGGING - Producción (menos verbose)
+# ============================================================================
+logging:
+  level:
+    root: WARN
+    com.reservas: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
+
+  # En producción, usar logging externo (Datadog, ELK, etc.)
+  file:
+    name: /var/log/citaclick/app.log
+    max-size: 50MB
+    max-history: 60
+
+# ============================================================================
+# JWT
+# ============================================================================
+jwt:
+  secret: ${JWT_SECRET}  # OBLIGATORIO: Generar con openssl rand -base64 64
+  expiration: 604800000  # 7 días
+  refresh-expiration: 2592000000  # 30 días
+
+# ============================================================================
+# GOOGLE OAUTH2
+# ============================================================================
+google:
+  client:
+    id: ${GOOGLE_CLIENT_ID}
+
+# ============================================================================
+# STRIPE - PRODUCCIÓN
+# ============================================================================
+stripe:
+  secret:
+    key: ${STRIPE_SECRET_KEY}  # sk_live_... en producción
+
+  api:
+    key: ${STRIPE_API_KEY}  # pk_live_... en producción
+
+  webhook:
+    secret: ${STRIPE_WEBHOOK_SECRET}  # whsec_... del webhook en producción
+
+  success:
+    url: ${FRONTEND_URL}/payment/success
+
+  cancel:
+    url: ${FRONTEND_URL}/payment/cancel
+
+  price:
+    basico: ${STRIPE_PRICE_BASICO}
+    profesional: ${STRIPE_PRICE_PROFESIONAL}
+    premium: ${STRIPE_PRICE_PREMIUM}
+
+# ============================================================================
+# TWILIO - SMS/WhatsApp (DESHABILITADO POR AHORA)
+# ============================================================================
+twilio:
+  account:
+    sid: ${TWILIO_ACCOUNT_SID:}  # Vacío = deshabilitado
+  auth:
+    token: ${TWILIO_AUTH_TOKEN:}
+  phone:
+    number: ${TWILIO_PHONE_NUMBER:}
+  whatsapp:
+    number: ${TWILIO_WHATSAPP_NUMBER:}
+
+# ============================================================================
+# SENDGRID - Email (PRIORIDAD)
+# ============================================================================
+sendgrid:
+  api:
+    key: ${SENDGRID_API_KEY}  # OBLIGATORIO
+  from:
+    email: ${SENDGRID_FROM_EMAIL:noreply@citaclick.com.mx}
+    name: ${SENDGRID_FROM_NAME:Cita Click}
+  template:
+    verification: ${SENDGRID_TEMPLATE_VERIFICATION:}
+    reminder: ${SENDGRID_TEMPLATE_REMINDER:}
+
+# ============================================================================
+# GOOGLE CLOUD STORAGE
+# ============================================================================
+gcp:
+  project:
+    id: ${GCP_PROJECT_ID:}
+  bucket:
+    name: ${GCP_BUCKET_NAME:}
+
+# ============================================================================
+# RATE LIMITING
+# ============================================================================
+rate:
+  limit:
+    enabled: true
+
+# ============================================================================
+# FRONTEND URL
+# ============================================================================
+frontend:
+  url: ${FRONTEND_URL:https://app.citaclick.com.mx}
+
+app:
+  frontend:
+    url: ${FRONTEND_URL:https://app.citaclick.com.mx}
+
+# ============================================================================
+# ACTUATOR
+# ============================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  health:
+    db:
+      enabled: true
