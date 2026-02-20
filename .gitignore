@@ -34,3 +34,6 @@ build/
 .env
 logs/
 .claude/
+
+### Configuraciones locales (contienen secrets, nunca commitear) ###
+**/application-local.yml

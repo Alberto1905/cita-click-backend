@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
     StringBuilder mensaje = new StringBuilder("Errores de validación: ");
     errors.forEach((field, error) -> mensaje.append(field).append(": ").append(error).append("; "));
 
-    log.error("MethodArgumentNotValidException - Errores de validación: {}", errors);
+    log.warn("Errores de validación: {}", errors);
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(ApiResponse.builder()
@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(UnauthorizedException.class)
   public ResponseEntity<ApiResponse> handleUnauthorizedException(
           UnauthorizedException ex, WebRequest request) {
-    log.error("UnauthorizedException: {}", ex.getMessage());
+    log.warn("Acceso no autorizado: {}", ex.getMessage());
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
             .body(ApiResponse.builder()
                     .success(false)
@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(ResourceNotFoundException.class)
   public ResponseEntity<ApiResponse> handleResourceNotFoundException(
           ResourceNotFoundException ex, WebRequest request) {
-    log.error("ResourceNotFoundException: {}", ex.getMessage());
+    log.warn("Recurso no encontrado: {}", ex.getMessage());
     return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(ApiResponse.builder()
                     .success(false)
@@ -70,7 +70,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(NotFoundException.class)
   public ResponseEntity<ApiResponse> handleNotFoundException(
           NotFoundException ex, WebRequest request) {
-    log.error("NotFoundException: {}", ex.getMessage());
+    log.warn("Recurso no encontrado: {}", ex.getMessage());
     return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(ApiResponse.builder()
                     .success(false)
@@ -81,7 +81,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(BadRequestException.class)
   public ResponseEntity<ApiResponse> handleBadRequestException(
           BadRequestException ex, WebRequest request) {
-    log.error("BadRequestException: {}", ex.getMessage());
+    log.warn("Bad request: {}", ex.getMessage());
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(ApiResponse.builder()
                     .success(false)
@@ -92,7 +92,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(LimiteExcedidoException.class)
   public ResponseEntity<ApiResponse> handleLimiteExcedidoException(
           LimiteExcedidoException ex, WebRequest request) {
-    log.error("LimiteExcedidoException: {}", ex.getMessage());
+    log.warn("Límite de plan excedido: {}", ex.getMessage());
     return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(ApiResponse.builder()
                     .success(false)
@@ -103,7 +103,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(PermisoInsuficienteException.class)
   public ResponseEntity<ApiResponse> handlePermisoInsuficienteException(
           PermisoInsuficienteException ex, WebRequest request) {
-    log.error("PermisoInsuficienteException: {}", ex.getMessage());
+    log.warn("Permiso insuficiente: {}", ex.getMessage());
     return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(ApiResponse.builder()
                     .success(false)
@@ -114,7 +114,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<ApiResponse> handleIllegalArgumentException(
           IllegalArgumentException ex, WebRequest request) {
-    log.error("IllegalArgumentException: {}", ex.getMessage());
+    log.warn("Argumento inválido: {}", ex.getMessage());
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(ApiResponse.builder()
                     .success(false)
@@ -143,7 +143,7 @@ public class GlobalExceptionHandler {
             ex.getMethod(),
             String.join(", ", ex.getSupportedMethods() != null ? ex.getSupportedMethods() : new String[]{}));
 
-    log.error("HttpRequestMethodNotSupportedException: {}", mensaje);
+    log.warn("Método HTTP no soportado: {}", mensaje);
 
     return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
             .body(ApiResponse.builder()

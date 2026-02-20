@@ -11,7 +11,7 @@ spring:
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://34.29.36.27:5432/db-cita-click-dev?currentSchema=ccdiad}
     username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:<c9eTj=TG4h%I)Q|}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
     # Sin HikariCP - Datasource básico gestionado por Hibernate
@@ -80,6 +80,8 @@ server:
 
 # ============================================================================
 # LOGGING CONFIGURATION
+# El formato y los appenders se definen en logback-spring.xml para poder
+# incluir el correlationId y userId del MDC en cada línea de log.
 # ============================================================================
 logging:
   level:
@@ -87,24 +89,15 @@ logging:
     com.reservas: INFO
     org.springframework.web: WARN
     org.springframework.security: WARN
-    org.hibernate.SQL: ${SQL_LOG_LEVEL:INFO}
+    org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
-
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
-
-  file:
-    name: logs/cita-click.log
-    max-size: 10MB
-    max-history: 30
 
 # ============================================================================
 # JWT CONFIGURATION
 # ============================================================================
 jwt:
   # Secret debe tener mínimo 512 bits (64 caracteres) para HS512
-  secret: ${JWT_SECRET:REDACTED_JWT_SECRET}
+  secret: ${JWT_SECRET}
   expiration: 604800000      # 7 días en milisegundos
   refresh-expiration: 2592000000  # 30 días en milisegundos
 
@@ -113,7 +106,7 @@ jwt:
 # ============================================================================
 google:
   client:
-    id: ${GOOGLE_CLIENT_ID:959341914970-esbnod0d1mhg4u1m8cae5q0g8knepnmv.apps.googleusercontent.com}
+    id: ${GOOGLE_CLIENT_ID}
 
 # ============================================================================
 # STRIPE CONFIGURATION
@@ -121,19 +114,19 @@ google:
 stripe:
   # Clave secreta de Stripe (usada por diferentes servicios)
   secret:
-    key: ${STRIPE_SECRET_KEY:REDACTED_STRIPE_TEST_KEY}
+    key: ${STRIPE_SECRET_KEY}
 
   api:
-    key: ${STRIPE_SECRET_KEY:pk_test_51SxZydCJJfBmj7w4mJLClVSuBL973RjUn5C7VBOBt48wl310KMO1Is90nOSkw4Ip0bTFtg4sQlZD1XynocZesc570005LWY9d4}
+    key: ${STRIPE_SECRET_KEY}
 
   webhook:
-    secret: ${STRIPE_WEBHOOK_SECRET:REDACTED_STRIPE_WEBHOOK}
+    secret: ${STRIPE_WEBHOOK_SECRET}
 
   success:
-    url: ${FRONTEND_URL:http://localhost:3000}/payment/success
+    url: ${FRONTEND_URL:http://localhost:5174}/payment/success
 
   cancel:
-    url: ${FRONTEND_URL:http://localhost:3000}/payment/cancel
+    url: ${FRONTEND_URL:http://localhost:5174}/payment/cancel
 
   # Price IDs (crear en Stripe Dashboard)
   price:
@@ -146,24 +139,24 @@ stripe:
 # ============================================================================
 twilio:
   account:
-    sid: ${TWILIO_ACCOUNT_SID:REDACTED_TWILIO_SID}
+    sid: ${TWILIO_ACCOUNT_SID:}
 
   auth:
-    token: ${TWILIO_AUTH_TOKEN:REDACTED_TWILIO_TOKEN}
+    token: ${TWILIO_AUTH_TOKEN:}
 
   phone:
-    number: ${TWILIO_PHONE_NUMBER:+18066212750}
+    number: ${TWILIO_PHONE_NUMBER:}
 
   whatsapp:
-    from: ${TWILIO_WHATSAPP_NUMBER:+14155238886}
-    number: ${TWILIO_WHATSAPP_NUMBER:+14155238886}
+    from: ${TWILIO_WHATSAPP_NUMBER:}
+    number: ${TWILIO_WHATSAPP_NUMBER:}
 
 # ============================================================================
 # SENDGRID CONFIGURATION (Email)
 # ============================================================================
 sendgrid:
   api:
-    key: ${SENDGRID_API_KEY:REDACTED_SENDGRID_KEY}
+    key: ${SENDGRID_API_KEY}
 
   from:
     email: ${SENDGRID_FROM_EMAIL:info@citaclick.com.mx}

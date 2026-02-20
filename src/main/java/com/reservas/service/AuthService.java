@@ -166,14 +166,9 @@ public class AuthService {
             throw new UnauthorizedException("Usuario no autenticado");
         }
 
-        log.info("Obteniendo información del usuario: {}", email);
-
         // Buscar usuario en la base de datos
         Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> {
-                    log.error("Usuario no encontrado en BD: {}", email);
-                    return new UnauthorizedException("Usuario no encontrado");
-                });
+                .orElseThrow(() -> new UnauthorizedException("Usuario no encontrado"));
 
         // Validar que el usuario esté activo
         if (!usuario.isActivo()) {
@@ -199,8 +194,6 @@ public class AuthService {
             response.setNombreNegocio(usuario.getNegocio().getNombre());
         }
 
-        log.info("Información del usuario obtenida exitosamente: {}", email);
-
         return response;
     }
 
@@ -210,7 +203,7 @@ public class AuthService {
      * Si no existe, lo registra automáticamente
      */
     public LoginResponse googleAuth(GoogleAuthRequest request, HttpServletRequest httpRequest) {
-        log.info("Iniciando autenticación con Google...");
+        log.debug("Iniciando autenticación con Google");
 
         // 1. Verificar token de Google
         GoogleUserInfo googleUser = googleOAuthService.verifyGoogleToken(request.getIdToken());

@@ -127,7 +127,6 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<?>> getCurrentUser() {
         try {
-            log.info("Endpoint /api/auth/me invocado");
             UserResponse userResponse = authService.obtenerUsuarioActual();
 
             return ResponseEntity.ok(ApiResponse.builder()

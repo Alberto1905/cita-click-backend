@@ -81,6 +81,7 @@ public class WebSecurityConfig {
                         // Rutas públicas - Sin /api porque context-path=/api ya lo agrega
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/google").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/verify-email").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/resend-verification").permitAll()
                         .requestMatchers("/auth/test").permitAll()
