@@ -2,6 +2,7 @@ package com.reservas.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +10,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
+@Slf4j
 public class JwtProvider {
 
     @Value("${jwt.secret}")
@@ -51,17 +53,18 @@ public class JwtProvider {
 
             return true;
         } catch (SecurityException e) {
-            System.out.println("JWT firma inválida: " + e.getMessage());
+            log.warn("JWT con firma inválida: {}", e.getMessage());
         } catch (MalformedJwtException e) {
-            System.out.println("Token JWT inválido: " + e.getMessage());
+            log.warn("Token JWT malformado: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
-            System.out.println("Token JWT expirado: " + e.getMessage());
+            // Nivel DEBUG: tokens expirados son parte del flujo normal (sesión cerrada)
+            log.debug("Token JWT expirado: {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-            System.out.println("JWT no soportado: " + e.getMessage());
+            log.warn("JWT no soportado: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            System.out.println("JWT claims vacío: " + e.getMessage());
+            log.warn("JWT con claims vacíos: {}", e.getMessage());
         } catch (JwtException e) {
-            System.out.println("Error JWT: " + e.getMessage());
+            log.warn("Error al procesar JWT: {}", e.getMessage());
         }
 
         return false;

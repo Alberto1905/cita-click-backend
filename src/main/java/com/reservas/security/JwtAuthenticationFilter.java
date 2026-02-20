@@ -1,9 +1,11 @@
 package com.reservas.security;
 
+import com.reservas.config.CorrelationIdFilter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -48,9 +50,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                // Registrar el usuario en MDC para que todos los logs del request
+                // subsiguientes (servicios, repositorios) lleven su identidad
+                MDC.put(CorrelationIdFilter.MDC_USER_ID, username);
             }
         } catch (Exception ex) {
-            logger.error("No se pudo establecer la autenticación de usuario en la cadena de filtros de seguridad", ex);
+            logger.error("No se pudo establecer la autenticación del usuario", ex);
         }
 
         filterChain.doFilter(request, response);

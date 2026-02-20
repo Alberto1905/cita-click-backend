@@ -38,6 +38,11 @@ public class ConnectAccountService {
         Usuario usuario = usuarioRepository.findById(java.util.UUID.fromString(request.getUsuarioId()))
                 .orElseThrow(() -> new PaymentException("Usuario no encontrado", "USER_NOT_FOUND"));
 
+        // Validar plan Premium
+        if (usuario.getNegocio() == null || !"premium".equalsIgnoreCase(usuario.getNegocio().getPlan())) {
+            throw new PaymentException("Stripe Connect requiere plan Premium", "PLAN_NOT_PREMIUM");
+        }
+
         if (accountRepository.existsByUsuarioId(java.util.UUID.fromString(request.getUsuarioId()))) {
             throw new PaymentException("El usuario ya tiene una cuenta conectada", "ACCOUNT_ALREADY_EXISTS");
         }
@@ -67,6 +72,13 @@ public class ConnectAccountService {
      */
     public OnboardingLink createOnboardingLink(String usuarioId, String refreshUrl, String returnUrl) {
         log.info("Generando link de onboarding para usuario: {}", usuarioId);
+
+        // Validar plan Premium
+        Usuario usuarioEntity = usuarioRepository.findById(java.util.UUID.fromString(usuarioId))
+                .orElseThrow(() -> new PaymentException("Usuario no encontrado", "USER_NOT_FOUND"));
+        if (usuarioEntity.getNegocio() == null || !"premium".equalsIgnoreCase(usuarioEntity.getNegocio().getPlan())) {
+            throw new PaymentException("Stripe Connect requiere plan Premium", "PLAN_NOT_PREMIUM");
+        }
 
         StripeConnectedAccount account = accountRepository.findByUsuarioId(java.util.UUID.fromString(usuarioId))
                 .orElseThrow(() -> new PaymentException("Cuenta no encontrada", "ACCOUNT_NOT_FOUND"));

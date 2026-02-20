@@ -65,6 +65,9 @@ public class StripeConnectController {
                 throw new PaymentException("No autorizado", "UNAUTHORIZED");
             }
 
+            // Validar que el usuario tenga plan Premium
+            validarPlanPremium(usuario);
+
             StripeConnectedAccount account = connectAccountService.createAccount(request);
 
             Map<String, Object> response = new HashMap<>();
@@ -83,7 +86,10 @@ public class StripeConnectController {
                             .build());
         } catch (PaymentException e) {
             log.error("[StripeConnectController] Error al crear cuenta: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            HttpStatus status = "PLAN_NOT_PREMIUM".equals(e.getErrorCode())
+                    ? HttpStatus.FORBIDDEN
+                    : HttpStatus.BAD_REQUEST;
+            return ResponseEntity.status(status)
                     .body(ApiResponse.<Map<String, Object>>builder()
                             .success(false)
                             .message(e.getMessage())
@@ -111,6 +117,9 @@ public class StripeConnectController {
             Usuario usuario = usuarioRepository.findByEmail(authentication.getName())
                     .orElseThrow(() -> new PaymentException("Usuario no encontrado", "USER_NOT_FOUND"));
 
+            // Validar que el usuario tenga plan Premium
+            validarPlanPremium(usuario);
+
             String refreshUrl = frontendUrl + "/integrations?tab=stripe&refresh=true";
             String returnUrl = frontendUrl + "/integrations?tab=stripe&success=true";
 
@@ -131,7 +140,10 @@ public class StripeConnectController {
                     .build());
         } catch (PaymentException e) {
             log.error("[StripeConnectController] Error al generar link: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            HttpStatus status = "PLAN_NOT_PREMIUM".equals(e.getErrorCode())
+                    ? HttpStatus.FORBIDDEN
+                    : HttpStatus.BAD_REQUEST;
+            return ResponseEntity.status(status)
                     .body(ApiResponse.<Map<String, Object>>builder()
                             .success(false)
                             .message(e.getMessage())
@@ -294,6 +306,23 @@ public class StripeConnectController {
                             .message(e.getMessage())
                             .data(Map.of("errorCode", e.getErrorCode()))
                             .build());
+        }
+    }
+
+    /**
+     * Valida que el usuario tenga plan Premium para usar Stripe Connect
+     */
+    private void validarPlanPremium(Usuario usuario) {
+        if (usuario.getNegocio() == null) {
+            throw new PaymentException("Negocio no encontrado", "BUSINESS_NOT_FOUND");
+        }
+
+        String plan = usuario.getNegocio().getPlan();
+        if (!"premium".equalsIgnoreCase(plan)) {
+            throw new PaymentException(
+                    "Stripe Connect solo está disponible para el plan Premium. Tu plan actual: " + (plan != null ? plan : "ninguno"),
+                    "PLAN_NOT_PREMIUM"
+            );
         }
     }
 }

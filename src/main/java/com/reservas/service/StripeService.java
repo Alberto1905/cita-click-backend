@@ -17,6 +17,7 @@ import com.stripe.model.PaymentIntent;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
+import com.stripe.param.checkout.SessionRetrieveParams;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -115,12 +116,12 @@ public class StripeService {
                 metadata.put("referencia", request.getReferencia());
             }
 
-            // Crear sesión de checkout para SUSCRIPCIÓN
+            // Crear sesión de checkout para SUSCRIPCIÓN (Hosted Checkout - redirect a Stripe)
             SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
-                    .setUiMode(SessionCreateParams.UiMode.EMBEDDED) // Checkout embebido
                     .setMode(SessionCreateParams.Mode.SUBSCRIPTION) // Suscripción recurrente
                     .setCustomer(customerId)
-                    .setReturnUrl(successUrl + "?session_id={CHECKOUT_SESSION_ID}")
+                    .setSuccessUrl(successUrl + "?session_id={CHECKOUT_SESSION_ID}")
+                    .setCancelUrl(cancelUrl)
                     .putAllMetadata(metadata)
                     .addLineItem(
                             SessionCreateParams.LineItem.builder()
@@ -128,9 +129,11 @@ public class StripeService {
                                     .setQuantity(1L)
                                     .build()
                     )
+                    // TODO: Reactivar cuando se configure dirección fiscal en Stripe Dashboard
+                    // https://dashboard.stripe.com/test/settings/tax
                     .setAutomaticTax(
                             SessionCreateParams.AutomaticTax.builder()
-                                    .setEnabled(true)
+                                    .setEnabled(false)
                                     .build()
                     );
 
@@ -170,8 +173,8 @@ public class StripeService {
 
             return CheckoutResponse.builder()
                     .sessionId(session.getId())
-                    .clientSecret(session.getClientSecret())
-                    .url(session.getUrl())
+                    .clientSecret(null) // No se usa en Hosted Checkout
+                    .url(session.getUrl()) // URL de Stripe Hosted Checkout
                     .plan(request.getPlan())
                     .monto(pago.getMonto().toString())
                     .moneda("MXN")
@@ -184,13 +187,20 @@ public class StripeService {
     }
 
     /**
-     * Obtiene el estado de una sesión de checkout
+     * Obtiene el estado de una sesión de checkout.
+     * Además, si la sesión está completa y es una suscripción, activa la suscripción
+     * como respaldo del webhook (patrón recomendado por Stripe).
      */
+    @Transactional
     public Map<String, Object> obtenerEstadoSesion(String sessionId) {
         log.info("[Stripe] Obteniendo estado de sesión: {}", sessionId);
 
         try {
-            Session session = Session.retrieve(sessionId);
+            // Recuperar sesión con metadata expandida
+            SessionRetrieveParams params = SessionRetrieveParams.builder()
+                    .addExpand("line_items")
+                    .build();
+            Session session = Session.retrieve(sessionId, params, null);
 
             Map<String, Object> response = new HashMap<>();
             response.put("status", session.getStatus());
@@ -202,6 +212,44 @@ public class StripeService {
 
             if (session.getPaymentIntent() != null) {
                 response.put("payment_intent", session.getPaymentIntent());
+            }
+
+            // ============================================================
+            // RESPALDO: Activar suscripción si la sesión está completa
+            // Esto asegura la activación incluso si el webhook no llega
+            // (ej: desarrollo local sin Stripe CLI)
+            // ============================================================
+            if ("complete".equals(session.getStatus()) && "subscription".equals(session.getMode())) {
+                try {
+                    String negocioId = session.getMetadata().get("negocio_id");
+                    String plan = session.getMetadata().get("plan");
+
+                    if (negocioId != null && plan != null) {
+                        Negocio negocio = negocioRepository.findById(UUID.fromString(negocioId))
+                                .orElse(null);
+
+                        // Solo activar si aún no está activo con este plan
+                        if (negocio != null && (!"activo".equals(negocio.getEstadoPago()) || !plan.equals(negocio.getPlan()))) {
+                            log.info("[Stripe] Activando suscripción desde session-status (respaldo webhook)");
+                            procesarSuscripcionCreada(session);
+                        }
+                    }
+                } catch (Exception e) {
+                    // No fallar la consulta de estado si la activación falla
+                    log.warn("[Stripe] Error en activación de respaldo: {}", e.getMessage());
+                }
+            } else if ("complete".equals(session.getStatus()) && "paid".equals(session.getPaymentStatus())
+                    && session.getPaymentIntent() != null) {
+                // Pago único completado
+                try {
+                    Pago pago = pagoRepository.findByStripeCheckoutSessionId(sessionId).orElse(null);
+                    if (pago != null && !pago.isPagado()) {
+                        log.info("[Stripe] Procesando pago desde session-status (respaldo webhook)");
+                        procesarPagoCompletado(sessionId, session.getPaymentIntent());
+                    }
+                } catch (Exception e) {
+                    log.warn("[Stripe] Error en procesamiento de pago de respaldo: {}", e.getMessage());
+                }
             }
 
             return response;

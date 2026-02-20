@@ -46,7 +46,8 @@ server:
     mime-types: application/json,application/xml,text/html,text/xml,text/plain
 
 # ============================================================================
-# LOGGING - Producción (menos verbose)
+# LOGGING - Producción
+# El formato se define en logback-spring.xml (perfil prod).
 # ============================================================================
 logging:
   level:
@@ -55,15 +56,6 @@ logging:
     org.springframework.web: WARN
     org.springframework.security: WARN
     org.hibernate: WARN
-
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
-
-  # En producción, usar logging externo (Datadog, ELK, etc.)
-  file:
-    name: /var/log/citaclick/app.log
-    max-size: 50MB
-    max-history: 60
 
 # ============================================================================
 # JWT

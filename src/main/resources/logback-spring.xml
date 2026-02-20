@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--
+        Patrón de log con correlationId y userId del MDC.
+        correlationId: UUID único por request HTTP → permite seguir toda la traza de un request.
+        userId:        Email del usuario autenticado → saber quién hizo qué.
+
+        Ejemplo de salida:
+          14:32:05.123 INFO  [a3b9f2c1d7e8 | user@email.com ] c.r.s.CitaService     - Cita creada: ID=45
+          14:32:05.456 INFO  [a3b9f2c1d7e8 | -              ] c.r.c.CorrelationId   - POST /api/citas → 201 (87ms)
+    -->
+    <property name="LOG_PATTERN_CONSOLE"
+              value="%d{HH:mm:ss.SSS} %-5level [%X{correlationId:--} | %-30.30X{userId:-anon}] %-35.35logger{35} - %msg%n"/>
+
+    <property name="LOG_PATTERN_FILE"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{correlationId:--} | %-30.30X{userId:-anon}] %-40.40logger{40} - %msg%n"/>
+
+    <!-- ================================================================
+         DESARROLLO (perfil por defecto y local)
+         ================================================================ -->
+    <springProfile name="!prod">
+
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${LOG_PATTERN_CONSOLE}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/cita-click.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>logs/cita-click.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>10MB</maxFileSize>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>200MB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>${LOG_PATTERN_FILE}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <!-- Nivel raíz: solo WARN para no saturar con ruido de frameworks -->
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+
+        <!-- Nuestro código: INFO para ver eventos de negocio relevantes -->
+        <logger name="com.reservas" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </logger>
+
+        <!-- Hibernate SQL: desactivado en dev para no saturar con SELECTs rutinarios -->
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.hibernate.type.descriptor.sql" level="WARN"/>
+
+    </springProfile>
+
+    <!-- ================================================================
+         PRODUCCIÓN
+         ================================================================ -->
+    <springProfile name="prod">
+
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${LOG_PATTERN_CONSOLE}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>/var/log/citaclick/app.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>/var/log/citaclick/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>50MB</maxFileSize>
+                <maxHistory>60</maxHistory>
+                <totalSizeCap>2GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>${LOG_PATTERN_FILE}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <!-- En producción solo WARNING y superiores de frameworks externos -->
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+
+        <!-- Nuestro código: INFO en producción para capturar eventos de negocio -->
+        <logger name="com.reservas" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </logger>
+
+        <!-- Silenciar completamente SQL en producción -->
+        <logger name="org.hibernate" level="WARN"/>
+        <logger name="org.springframework.security" level="WARN"/>
+
+    </springProfile>
+
+</configuration>
