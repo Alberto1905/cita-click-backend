@@ -27,7 +27,6 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         default_schema: ccdiad
         format_sql: false
         jdbc:

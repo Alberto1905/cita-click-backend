@@ -54,9 +54,13 @@
             <appender-ref ref="FILE"/>
         </logger>
 
-        <!-- Hibernate SQL: desactivado en dev para no saturar con SELECTs rutinarios -->
+        <!-- Hibernate: silenciar warnings rutinarios de ddl-auto y dialect -->
         <logger name="org.hibernate.SQL" level="WARN"/>
         <logger name="org.hibernate.type.descriptor.sql" level="WARN"/>
+        <!-- Suprime "constraint does not exist, skipping" (SQLState 00000 = aviso inofensivo de ddl-auto:update) -->
+        <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="ERROR"/>
+        <!-- Suprime "PostgreSQLDialect does not need to be specified explicitly" -->
+        <logger name="org.hibernate.orm.deprecation" level="ERROR"/>
 
     </springProfile>
 
@@ -98,8 +102,10 @@
             <appender-ref ref="FILE"/>
         </logger>
 
-        <!-- Silenciar completamente SQL en producción -->
+        <!-- Silenciar completamente SQL y warnings rutinarios de Hibernate en producción -->
         <logger name="org.hibernate" level="WARN"/>
+        <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="ERROR"/>
+        <logger name="org.hibernate.orm.deprecation" level="ERROR"/>
         <logger name="org.springframework.security" level="WARN"/>
 
     </springProfile>

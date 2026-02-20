@@ -46,8 +46,6 @@ spring:
     # Propiedades de Hibernate
     properties:
       hibernate:
-        # Dialecto PostgreSQL
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 
         # Schema por defecto
         default_schema: ccdiad
