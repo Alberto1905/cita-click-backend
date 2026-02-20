@@ -32,8 +32,8 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(CorrelationIdFilter.class);
 
-    static final String MDC_CORRELATION_ID = "correlationId";
-    static final String MDC_USER_ID = "userId";
+    public static final String MDC_CORRELATION_ID = "correlationId";
+    public static final String MDC_USER_ID = "userId";
     private static final String HEADER_CORRELATION_ID = "X-Correlation-Id";
 
     @Override
