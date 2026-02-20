@@ -18,12 +18,6 @@ import lombok.NoArgsConstructor;
 public class PlantillaEmailConfigRequest {
 
     /**
-     * URL del logo (puede ser null si no se ha subido)
-     */
-    @Size(max = 500, message = "La URL del logo no puede exceder 500 caracteres")
-    private String logoUrl;
-
-    /**
      * Color primario en formato hexadecimal (#RRGGBB)
      */
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "El color primario debe estar en formato hexadecimal (#RRGGBB)")

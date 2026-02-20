@@ -19,7 +19,6 @@ public class PlantillaEmailConfigResponse {
 
     private String id;
     private String negocioId;
-    private String logoUrl;
     private String colorPrimario;
     private String colorSecundario;
     private String colorFondo;
@@ -38,7 +37,6 @@ public class PlantillaEmailConfigResponse {
         return PlantillaEmailConfigResponse.builder()
                 .id(config.getId())
                 .negocioId(config.getNegocio().getId().toString())
-                .logoUrl(config.getLogoUrl())
                 .colorPrimario(config.getColorPrimario())
                 .colorSecundario(config.getColorSecundario())
                 .colorFondo(config.getColorFondo())

@@ -68,9 +68,6 @@ public class PlantillaEmailService {
                         .build());
 
         // Actualizar campos
-        if (request.getLogoUrl() != null) {
-            config.setLogoUrl(request.getLogoUrl());
-        }
         if (request.getColorPrimario() != null) {
             config.setColorPrimario(request.getColorPrimario());
         }
@@ -98,32 +95,6 @@ public class PlantillaEmailService {
 
         config = plantillaRepository.save(config);
         log.info("✅ Configuración de plantilla guardada para negocio: {}", negocio.getId());
-
-        return PlantillaEmailConfigResponse.fromEntity(config);
-    }
-
-    /**
-     * Elimina el logo de la plantilla
-     */
-    @Transactional
-    public PlantillaEmailConfigResponse eliminarLogo(String email) {
-        log.info("Eliminando logo de plantilla para usuario: {}", email);
-
-        Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
-
-        Negocio negocio = usuario.getNegocio();
-        if (negocio == null) {
-            throw new NotFoundException("Negocio no encontrado");
-        }
-
-        PlantillaEmailConfig config = plantillaRepository.findByNegocio(negocio)
-                .orElseThrow(() -> new NotFoundException("Configuración de plantilla no encontrada"));
-
-        config.setLogoUrl(null);
-        config = plantillaRepository.save(config);
-
-        log.info("✅ Logo eliminado de plantilla para negocio: {}", negocio.getId());
 
         return PlantillaEmailConfigResponse.fromEntity(config);
     }

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * Configuración de plantilla de email personalizada por negocio
- * Permite personalizar colores, logo y textos de los emails
+ * Permite personalizar colores y textos de los emails
  */
 @Entity
 @Table(name = "plantilla_email_config")
@@ -29,14 +29,6 @@ public class PlantillaEmailConfig {
     @OneToOne
     @JoinColumn(name = "negocio_id", nullable = false, unique = true)
     private Negocio negocio;
-
-    /**
-     * URL del logo personalizado (almacenado en Google Cloud Storage)
-     * Dimensiones recomendadas: 200x80px
-     * Tamaño máximo: 500KB
-     */
-    @Column(name = "logo_url", length = 500)
-    private String logoUrl;
 
     /**
      * Color primario en formato hexadecimal (ej: #1E40AF)

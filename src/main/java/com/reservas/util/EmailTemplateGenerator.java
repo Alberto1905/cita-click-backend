@@ -44,7 +44,6 @@ public class EmailTemplateGenerator {
         String colorPrimario = getColor(config, "primario", "#1E40AF");
         String colorSecundario = getColor(config, "secundario", "#3B82F6");
         String colorFondo = getColor(config, "fondo", "#F3F4F6");
-        String logoUrl = config != null ? config.getLogoUrl() : null;
         String mensajeBienvenida = getText(config, "bienvenida", "Te recordamos tu próxima cita");
         String firma = getText(config, "firma", "Equipo de " + nombreNegocio);
         String infoContacto = config != null ? config.getInfoContacto() : null;
@@ -73,9 +72,7 @@ public class EmailTemplateGenerator {
                 "<body>" +
                 "<div class=\"container\">" +
                 "<div class=\"header\">" +
-                (logoUrl != null && !logoUrl.isBlank()
-                        ? "<img src=\"" + logoUrl + "\" alt=\"Logo\" style=\"max-width: 200px; max-height: 80px; margin-bottom: 10px;\">"
-                        : "<div class=\"header-emoji\">🔔</div>") +
+                "<div class=\"header-emoji\">🔔</div>" +
                 "<h1>Recordatorio de Cita</h1>" +
                 "</div>" +
                 "<div class=\"content\">" +
@@ -116,7 +113,6 @@ public class EmailTemplateGenerator {
         String colorPrimario = getColor(config, "primario", "#1E40AF");
         String colorSecundario = getColor(config, "secundario", "#3B82F6");
         String colorFondo = getColor(config, "fondo", "#F3F4F6");
-        String logoUrl = config != null ? config.getLogoUrl() : null;
         String mensajeBienvenida = getText(config, "bienvenida", "Te recordamos tu próxima cita");
         String firma = getText(config, "firma", "Equipo de " + nombreNegocio);
         String infoContacto = config != null ? config.getInfoContacto() : null;
@@ -150,9 +146,7 @@ public class EmailTemplateGenerator {
                 "<body>" +
                 "<div class=\"container\">" +
                 "<div class=\"header\">" +
-                (logoUrl != null && !logoUrl.isBlank()
-                        ? "<img src=\"" + logoUrl + "\" alt=\"Logo\" style=\"max-width: 200px; max-height: 80px; margin-bottom: 15px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));\">"
-                        : "<div class=\"header-emoji\">🔔</div>") +
+                "<div class=\"header-emoji\">🔔</div>" +
                 "<h1>Recordatorio de Cita</h1>" +
                 "</div>" +
                 "<div class=\"content\">" +
@@ -194,7 +188,6 @@ public class EmailTemplateGenerator {
 
         String colorPrimario = getColor(config, "primario", "#000000");
         String colorSecundario = getColor(config, "secundario", "#666666");
-        String logoUrl = config != null ? config.getLogoUrl() : null;
         String mensajeBienvenida = getText(config, "bienvenida", "Recordatorio de cita");
         String firma = getText(config, "firma", nombreNegocio);
         String infoContacto = config != null ? config.getInfoContacto() : null;
@@ -208,7 +201,6 @@ public class EmailTemplateGenerator {
                 "body { margin: 0; padding: 40px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #ffffff; }" +
                 ".container { max-width: 500px; margin: 0 auto; }" +
                 ".header { text-align: center; padding-bottom: 30px; border-bottom: 1px solid #E5E7EB; }" +
-                ".logo { max-width: 150px; max-height: 60px; margin-bottom: 20px; }" +
                 ".header h1 { color: " + colorPrimario + "; margin: 0; font-size: 18px; font-weight: 400; letter-spacing: 1px; text-transform: uppercase; }" +
                 ".content { padding: 40px 0; }" +
                 ".greeting { font-size: 14px; color: " + colorSecundario + "; margin-bottom: 30px; text-align: center; letter-spacing: 0.5px; }" +
@@ -226,9 +218,6 @@ public class EmailTemplateGenerator {
                 "<body>" +
                 "<div class=\"container\">" +
                 "<div class=\"header\">" +
-                (logoUrl != null && !logoUrl.isBlank()
-                        ? "<img src=\"" + logoUrl + "\" alt=\"Logo\" class=\"logo\">"
-                        : "") +
                 "<h1>" + mensajeBienvenida + "</h1>" +
                 "</div>" +
                 "<div class=\"content\">" +
@@ -259,14 +248,9 @@ public class EmailTemplateGenerator {
             String verificationUrl,
             String nombreNegocio) {
 
-        PlantillaEmailConfig.TipoDiseno diseno = config != null && config.getDisenoBase() != null
-                ? config.getDisenoBase()
-                : PlantillaEmailConfig.TipoDiseno.CLASICO;
-
         String colorPrimario = getColor(config, "primario", "#1E40AF");
         String colorSecundario = getColor(config, "secundario", "#3B82F6");
         String colorFondo = getColor(config, "fondo", "#F3F4F6");
-        String logoUrl = config != null ? config.getLogoUrl() : null;
 
         // Para verificación, usar diseño más simple
         return "<!DOCTYPE html>" +
@@ -289,9 +273,7 @@ public class EmailTemplateGenerator {
                 "<body>" +
                 "<div class=\"container\">" +
                 "<div class=\"header\">" +
-                (logoUrl != null && !logoUrl.isBlank()
-                        ? "<img src=\"" + logoUrl + "\" alt=\"Logo\" style=\"max-width: 200px; max-height: 80px; margin-bottom: 10px;\">"
-                        : "<div class=\"header-emoji\">✨</div>") +
+                "<div class=\"header-emoji\">✨</div>" +
                 "<h1>¡Bienvenido a Cita Click!</h1>" +
                 "</div>" +
                 "<div class=\"content\">" +
