@@ -10,7 +10,6 @@ import com.reservas.repository.PlantillaEmailConfigRepository;
 import com.reservas.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -54,7 +53,6 @@ class PlantillaEmailServiceTest {
         PlantillaEmailConfig config = PlantillaEmailConfig.builder()
                 .id(UUID.randomUUID().toString())
                 .negocio(negocio)
-                .logoUrl("/api/uploads/logos/logo123.png")
                 .colorPrimario("#1E40AF")
                 .colorSecundario("#3B82F6")
                 .colorFondo("#F3F4F6")
@@ -75,7 +73,6 @@ class PlantillaEmailServiceTest {
         assertNotNull(response);
         assertEquals(config.getId(), response.getId());
         assertEquals(negocio.getId().toString(), response.getNegocioId());
-        assertEquals("/api/uploads/logos/logo123.png", response.getLogoUrl());
         assertEquals("#1E40AF", response.getColorPrimario());
         assertEquals("#3B82F6", response.getColorSecundario());
         assertEquals("#F3F4F6", response.getColorFondo());
@@ -167,7 +164,6 @@ class PlantillaEmailServiceTest {
                 .build();
 
         PlantillaEmailConfigRequest request = PlantillaEmailConfigRequest.builder()
-                .logoUrl("/api/uploads/logos/new-logo.png")
                 .colorPrimario("#FF5733")
                 .colorSecundario("#FFC300")
                 .colorFondo("#FFFFFF")
@@ -188,7 +184,6 @@ class PlantillaEmailServiceTest {
         // Then
         assertNotNull(response);
         assertEquals(negocio.getId().toString(), response.getNegocioId());
-        assertEquals("/api/uploads/logos/new-logo.png", response.getLogoUrl());
         assertEquals("#FF5733", response.getColorPrimario());
         assertEquals("#FFC300", response.getColorSecundario());
         assertEquals("#FFFFFF", response.getColorFondo());
@@ -264,7 +259,6 @@ class PlantillaEmailServiceTest {
         PlantillaEmailConfig configExistente = PlantillaEmailConfig.builder()
                 .id(UUID.randomUUID().toString())
                 .negocio(negocio)
-                .logoUrl("/api/uploads/logos/old-logo.png")
                 .colorPrimario("#000000")
                 .colorSecundario("#CCCCCC")
                 .colorFondo("#FFFFFF")
@@ -273,9 +267,9 @@ class PlantillaEmailServiceTest {
                 .activa(true)
                 .build();
 
-        // Solo actualizar el logo
+        // Solo actualizar el mensaje de bienvenida
         PlantillaEmailConfigRequest request = PlantillaEmailConfigRequest.builder()
-                .logoUrl("/api/uploads/logos/new-logo.png")
+                .mensajeBienvenida("Mensaje actualizado")
                 .build();
 
         when(usuarioRepository.findByEmail(email)).thenReturn(Optional.of(usuario));
@@ -287,80 +281,13 @@ class PlantillaEmailServiceTest {
 
         // Then
         assertNotNull(response);
-        assertEquals("/api/uploads/logos/new-logo.png", response.getLogoUrl());
+        assertEquals("Mensaje actualizado", response.getMensajeBienvenida());
         // Los demás campos deben mantener sus valores anteriores
         assertEquals("#000000", response.getColorPrimario());
         assertEquals("#CCCCCC", response.getColorSecundario());
         assertEquals("#FFFFFF", response.getColorFondo());
-        assertEquals("Mensaje anterior", response.getMensajeBienvenida());
 
         verify(plantillaRepository).save(any(PlantillaEmailConfig.class));
-    }
-
-    @Test
-    void testEliminarLogo_Exitoso() {
-        // Given
-        String email = "admin@spa.com";
-        Negocio negocio = Negocio.builder()
-                .id(UUID.randomUUID())
-                .nombre("Spa Relax")
-                .build();
-
-        Usuario usuario = Usuario.builder()
-                .email(email)
-                .negocio(negocio)
-                .build();
-
-        PlantillaEmailConfig config = PlantillaEmailConfig.builder()
-                .id(UUID.randomUUID().toString())
-                .negocio(negocio)
-                .logoUrl("/api/uploads/logos/logo-to-delete.png")
-                .colorPrimario("#1E40AF")
-                .colorSecundario("#3B82F6")
-                .colorFondo("#F3F4F6")
-                .disenoBase(PlantillaEmailConfig.TipoDiseno.CLASICO)
-                .activa(true)
-                .build();
-
-        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.of(usuario));
-        when(plantillaRepository.findByNegocio(negocio)).thenReturn(Optional.of(config));
-        when(plantillaRepository.save(any(PlantillaEmailConfig.class))).thenAnswer(i -> i.getArgument(0));
-
-        // When
-        PlantillaEmailConfigResponse response = plantillaEmailService.eliminarLogo(email);
-
-        // Then
-        assertNotNull(response);
-        assertNull(response.getLogoUrl());
-
-        ArgumentCaptor<PlantillaEmailConfig> captor = ArgumentCaptor.forClass(PlantillaEmailConfig.class);
-        verify(plantillaRepository).save(captor.capture());
-        assertNull(captor.getValue().getLogoUrl());
-    }
-
-    @Test
-    void testEliminarLogo_ConfiguracionNoExiste_LanzaExcepcion() {
-        // Given
-        String email = "admin@test.com";
-        Negocio negocio = Negocio.builder()
-                .id(UUID.randomUUID())
-                .nombre("Negocio Test")
-                .build();
-
-        Usuario usuario = Usuario.builder()
-                .email(email)
-                .negocio(negocio)
-                .build();
-
-        when(usuarioRepository.findByEmail(email)).thenReturn(Optional.of(usuario));
-        when(plantillaRepository.findByNegocio(negocio)).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThrows(NotFoundException.class, () -> {
-            plantillaEmailService.eliminarLogo(email);
-        });
-
-        verify(plantillaRepository, never()).save(any());
     }
 
     @Test
@@ -380,7 +307,6 @@ class PlantillaEmailServiceTest {
         PlantillaEmailConfig configExistente = PlantillaEmailConfig.builder()
                 .id(UUID.randomUUID().toString())
                 .negocio(negocio)
-                .logoUrl("/api/uploads/logos/custom-logo.png")
                 .colorPrimario("#FF0000")
                 .colorSecundario("#00FF00")
                 .colorFondo("#0000FF")
