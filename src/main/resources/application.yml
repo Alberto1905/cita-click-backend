@@ -13,10 +13,13 @@ spring:
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-
-    # Sin HikariCP - Datasource básico gestionado por Hibernate
-    # Para pool de conexiones en producción, usar PgBouncer o similar
-    type: org.springframework.jdbc.datasource.DriverManagerDataSource
+    hikari:
+      pool-name: CitaClickPool
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000   # 30s para obtener una conexión del pool
+      idle-timeout: 600000        # 10 min antes de cerrar conexión inactiva
+      max-lifetime: 1800000       # 30 min vida máxima de una conexión
 
   # ============================================================================
   # JPA / HIBERNATE CONFIGURATION
