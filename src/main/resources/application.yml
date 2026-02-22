@@ -163,6 +163,13 @@ resend:
     email: ${RESEND_FROM_EMAIL:info@citaclick.com.mx}
     name: ${RESEND_FROM_NAME:Cita Click}
 
+  # Template IDs creados en Resend Dashboard (resend.com/emails/templates)
+  templates:
+    verificacion-correo:      ${RESEND_TEMPLATE_VERIFICACION:verificacin-correo-electrnico}
+    recordatorio-clasico:     ${RESEND_TEMPLATE_RECORDATORIO_CLASICO:recordatorio-clasico}
+    recordatorio-moderno:     ${RESEND_TEMPLATE_RECORDATORIO_MODERNO:recordatorio-moderno}
+    recordatorio-minimalista: ${RESEND_TEMPLATE_RECORDATORIO_MINIMALISTA:recordatorio-minimalista}
+
 # ============================================================================
 # GOOGLE CLOUD PLATFORM (Cloud Storage)
 # ============================================================================
