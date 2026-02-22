@@ -16,7 +16,13 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-    type: org.springframework.jdbc.datasource.DriverManagerDataSource
+    hikari:
+      pool-name: CitaClickProdPool
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000   # 30s para obtener conexión del pool
+      idle-timeout: 600000        # 10 min antes de cerrar conexión inactiva
+      max-lifetime: 1800000       # 30 min vida máxima de una conexión
 
   # ============================================================================
   # JPA - PRODUCCIÓN (Solo validar, NO modificar schema)
@@ -109,17 +115,14 @@ twilio:
     number: ${TWILIO_WHATSAPP_NUMBER:}
 
 # ============================================================================
-# SENDGRID - Email (PRIORIDAD)
+# RESEND - Email (PRIORIDAD)
 # ============================================================================
-sendgrid:
+resend:
   api:
-    key: ${SENDGRID_API_KEY}  # OBLIGATORIO
+    key: ${RESEND_API_KEY}  # OBLIGATORIO - obtener en https://resend.com
   from:
-    email: ${SENDGRID_FROM_EMAIL:noreply@citaclick.com.mx}
-    name: ${SENDGRID_FROM_NAME:Cita Click}
-  template:
-    verification: ${SENDGRID_TEMPLATE_VERIFICATION:}
-    reminder: ${SENDGRID_TEMPLATE_REMINDER:}
+    email: ${RESEND_FROM_EMAIL:noreply@citaclick.com.mx}
+    name: ${RESEND_FROM_NAME:Cita Click}
 
 # ============================================================================
 # GOOGLE CLOUD STORAGE

@@ -11,7 +11,7 @@ import java.util.List;
  * Interfaz base para proveedores de notificaciones.
  *
  * Esta interfaz abstrae el envío de notificaciones sin importar el canal:
- * - Email (SendGrid, SES, etc.)
+ * - Email (Resend, SES, etc.)
  * - SMS (Twilio, etc.)
  * - WhatsApp (Twilio, etc.)
  * - Push notifications

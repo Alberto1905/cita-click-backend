@@ -1,378 +1,309 @@
 package com.reservas.service;
 
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedConstruction;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.*;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.HttpClientErrorException;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
- * Tests unitarios para EmailService
+ * Tests unitarios para EmailService (Resend API via RestTemplate).
+ *
+ * Usa el patrón de subclase de prueba (test-double) que sobrescribe el método
+ * protegido doPost() para evitar llamadas HTTP reales y problemas con
+ * la instrumentación de bytecode de Mockito en Java 23.
  */
-@ExtendWith(MockitoExtension.class)
 class EmailServiceTest {
 
-    @InjectMocks
-    private EmailService emailService;
+    // ─────────────────────────────────────────────────────────────────
+    // Test double: subclase que captura las llamadas a doPost()
+    // ─────────────────────────────────────────────────────────────────
 
-    @Mock
-    private SendGrid mockSendGrid;
+    @SuppressWarnings("unchecked")
+    private static class TestEmailService extends EmailService {
 
-    @Mock
-    private Response mockResponse;
+        private ResponseEntity<Map> responseToReturn;
+        private RuntimeException exceptionToThrow;
+        private int postCallCount = 0;
+
+        @Override
+        protected ResponseEntity<Map> doPost(String url, HttpEntity<?> entity) {
+            postCallCount++;
+            if (exceptionToThrow != null) {
+                throw exceptionToThrow;
+            }
+            return responseToReturn;
+        }
+
+        void willReturn(String id) {
+            Map<String, Object> body = new HashMap<>();
+            body.put("id", id);
+            this.responseToReturn = ResponseEntity.ok(body);
+            this.exceptionToThrow = null;
+        }
+
+        void willThrow(RuntimeException e) {
+            this.exceptionToThrow = e;
+            this.responseToReturn = null;
+        }
+
+        boolean wasPostCalled() {
+            return postCallCount > 0;
+        }
+
+        void resetCallCount() {
+            postCallCount = 0;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // Setup
+    // ─────────────────────────────────────────────────────────────────
+
+    private TestEmailService emailService;
 
     @BeforeEach
     void setUp() {
-        // Configurar valores por defecto
-        ReflectionTestUtils.setField(emailService, "sendGridApiKey", "SG.test-api-key-12345");
+        emailService = new TestEmailService();
+        ReflectionTestUtils.setField(emailService, "resendApiKey", "re_test-api-key-12345");
         ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@test.com");
         ReflectionTestUtils.setField(emailService, "fromName", "Test System");
-        ReflectionTestUtils.setField(emailService, "verificationTemplateId", "d-test-verification-template");
-        ReflectionTestUtils.setField(emailService, "reminderTemplateId", "d-test-reminder-template");
     }
 
-    @Test
-    void testEnviarEmail_Exitoso() throws IOException {
-        // Given
-        String destinatario = "user@example.com";
-        String asunto = "Test Subject";
-        String contenido = "<h1>Test Content</h1>";
-
-        when(mockResponse.getStatusCode()).thenReturn(202);
-
-        try (MockedConstruction<SendGrid> mockedSendGrid = mockConstruction(SendGrid.class,
-                (mock, context) -> when(mock.api(any(Request.class))).thenReturn(mockResponse))) {
-
-            // When
-            boolean result = emailService.enviarEmail(destinatario, asunto, contenido);
-
-            // Then
-            assertTrue(result);
-            assertEquals(1, mockedSendGrid.constructed().size());
-        }
-    }
+    // ─────────────────────────────────────────────────────────────────
+    // enviarEmail
+    // ─────────────────────────────────────────────────────────────────
 
     @Test
-    void testEnviarEmail_SendGridNoConfigurado() {
+    void testEnviarEmail_Exitoso() {
         // Given
-        ReflectionTestUtils.setField(emailService, "sendGridApiKey", "");
-        String destinatario = "user@example.com";
-        String asunto = "Test Subject";
-        String contenido = "<h1>Test Content</h1>";
+        emailService.willReturn("email-id-001");
 
         // When
-        boolean result = emailService.enviarEmail(destinatario, asunto, contenido);
+        boolean result = emailService.enviarEmail("user@example.com", "Test Subject", "<h1>Content</h1>");
+
+        // Then
+        assertTrue(result);
+        assertTrue(emailService.wasPostCalled());
+    }
+
+    @Test
+    void testEnviarEmail_ResendNoConfigurado_ApiKeyVacia() {
+        // Given
+        ReflectionTestUtils.setField(emailService, "resendApiKey", "");
+
+        // When
+        boolean result = emailService.enviarEmail("user@example.com", "Test", "<p>Content</p>");
+
+        // Then
+        assertFalse(result);
+        assertFalse(emailService.wasPostCalled());
+    }
+
+    @Test
+    void testEnviarEmail_ResendNoConfigurado_ApiKeyNull() {
+        // Given
+        ReflectionTestUtils.setField(emailService, "resendApiKey", null);
+
+        // When
+        boolean result = emailService.enviarEmail("user@example.com", "Test", "<p>Content</p>");
+
+        // Then
+        assertFalse(result);
+        assertFalse(emailService.wasPostCalled());
+    }
+
+    @Test
+    void testEnviarEmail_ErrorHTTP() {
+        // Given
+        emailService.willThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "Unauthorized"));
+
+        // When
+        boolean result = emailService.enviarEmail("user@example.com", "Test", "<p>Content</p>");
 
         // Then
         assertFalse(result);
     }
 
     @Test
-    void testEnviarEmail_SendGridNoConfigurado_ApiKeyNull() {
+    void testEnviarEmail_ErrorInesperado() {
         // Given
-        ReflectionTestUtils.setField(emailService, "sendGridApiKey", null);
-        String destinatario = "user@example.com";
-        String asunto = "Test Subject";
-        String contenido = "<h1>Test Content</h1>";
+        emailService.willThrow(new RuntimeException("Connection refused"));
 
         // When
-        boolean result = emailService.enviarEmail(destinatario, asunto, contenido);
+        boolean result = emailService.enviarEmail("user@example.com", "Test", "<p>Content</p>");
 
         // Then
         assertFalse(result);
     }
 
-    @Test
-    void testEnviarEmail_ErrorStatusCode() throws IOException {
-        // Given
-        String destinatario = "user@example.com";
-        String asunto = "Test Subject";
-        String contenido = "<h1>Test Content</h1>";
-
-        when(mockResponse.getStatusCode()).thenReturn(400);
-        when(mockResponse.getBody()).thenReturn("Bad Request");
-
-        try (MockedConstruction<SendGrid> mockedSendGrid = mockConstruction(SendGrid.class,
-                (mock, context) -> when(mock.api(any(Request.class))).thenReturn(mockResponse))) {
-
-            // When
-            boolean result = emailService.enviarEmail(destinatario, asunto, contenido);
-
-            // Then
-            assertFalse(result);
-        }
-    }
+    // ─────────────────────────────────────────────────────────────────
+    // enviarEmailConTemplate
+    // ─────────────────────────────────────────────────────────────────
 
     @Test
-    void testEnviarEmail_IOException() throws IOException {
+    void testEnviarEmailConTemplate_Exitoso() {
         // Given
-        String destinatario = "user@example.com";
-        String asunto = "Test Subject";
-        String contenido = "<h1>Test Content</h1>";
-
-        try (MockedConstruction<SendGrid> mockedSendGrid = mockConstruction(SendGrid.class,
-                (mock, context) -> when(mock.api(any(Request.class))).thenThrow(new IOException("Network error")))) {
-
-            // When
-            boolean result = emailService.enviarEmail(destinatario, asunto, contenido);
-
-            // Then
-            assertFalse(result);
-        }
-    }
-
-    @Test
-    void testEnviarEmailConTemplate_Exitoso() throws IOException {
-        // Given
-        String destinatario = "user@example.com";
-        String templateId = "d-test-template";
+        emailService.willReturn("email-id-002");
         Map<String, Object> templateData = new HashMap<>();
         templateData.put("nombre", "Juan");
         templateData.put("verificationUrl", "https://example.com/verify/123");
 
-        when(mockResponse.getStatusCode()).thenReturn(202);
-
-        try (MockedConstruction<SendGrid> mockedSendGrid = mockConstruction(SendGrid.class,
-                (mock, context) -> when(mock.api(any(Request.class))).thenReturn(mockResponse))) {
-
-            // When
-            boolean result = emailService.enviarEmailConTemplate(destinatario, templateId, templateData);
-
-            // Then
-            assertTrue(result);
-            assertEquals(1, mockedSendGrid.constructed().size());
-        }
-    }
-
-    @Test
-    void testEnviarEmailConTemplate_SendGridNoConfigurado() {
-        // Given
-        ReflectionTestUtils.setField(emailService, "sendGridApiKey", "");
-        String destinatario = "user@example.com";
-        String templateId = "d-test-template";
-        Map<String, Object> templateData = Map.of("nombre", "Juan");
-
         // When
-        boolean result = emailService.enviarEmailConTemplate(destinatario, templateId, templateData);
+        boolean result = emailService.enviarEmailConTemplate("user@example.com", "ref-template-001", templateData);
 
         // Then
-        assertFalse(result);
+        assertTrue(result);
+        assertTrue(emailService.wasPostCalled());
     }
 
     @Test
-    void testEnviarEmailConTemplate_ErrorStatusCode() throws IOException {
+    void testEnviarEmailConTemplate_ResendNoConfigurado() {
         // Given
-        String destinatario = "user@example.com";
-        String templateId = "d-test-template";
-        Map<String, Object> templateData = Map.of("nombre", "Juan");
-
-        when(mockResponse.getStatusCode()).thenReturn(500);
-        when(mockResponse.getBody()).thenReturn("Internal Server Error");
-
-        try (MockedConstruction<SendGrid> mockedSendGrid = mockConstruction(SendGrid.class,
-                (mock, context) -> when(mock.api(any(Request.class))).thenReturn(mockResponse))) {
-
-            // When
-            boolean result = emailService.enviarEmailConTemplate(destinatario, templateId, templateData);
-
-            // Then
-            assertFalse(result);
-        }
-    }
-
-    @Test
-    void testEnviarConfirmacionRegistro_Exitoso() throws IOException {
-        // Given
-        String destinatario = "newuser@example.com";
-        String nombreUsuario = "María García";
-
-        when(mockResponse.getStatusCode()).thenReturn(202);
-
-        try (MockedConstruction<SendGrid> mockedSendGrid = mockConstruction(SendGrid.class,
-                (mock, context) -> when(mock.api(any(Request.class))).thenReturn(mockResponse))) {
-
-            // When
-            boolean result = emailService.enviarConfirmacionRegistro(destinatario, nombreUsuario);
-
-            // Then
-            assertTrue(result);
-        }
-    }
-
-    @Test
-    void testEnviarRecordatorioCita_ConTemplateConfigurado() throws IOException {
-        // Given
-        String destinatario = "client@example.com";
-        String nombreCliente = "Pedro López";
-        String fechaCita = "Lunes 20 de Enero, 2026";
-        String horaCita = "10:00 AM";
-        String nombreServicio = "Corte de Cabello";
-        String nombreNegocio = "Barbería El Clásico";
-
-        when(mockResponse.getStatusCode()).thenReturn(202);
-
-        try (MockedConstruction<SendGrid> mockedSendGrid = mockConstruction(SendGrid.class,
-                (mock, context) -> when(mock.api(any(Request.class))).thenReturn(mockResponse))) {
-
-            // When
-            boolean result = emailService.enviarRecordatorioCita(
-                    destinatario, nombreCliente, fechaCita, horaCita, nombreServicio, nombreNegocio
-            );
-
-            // Then
-            assertTrue(result);
-        }
-    }
-
-    @Test
-    void testEnviarRecordatorioCita_SinTemplateConfigurado() throws IOException {
-        // Given
-        ReflectionTestUtils.setField(emailService, "reminderTemplateId", "");
-        String destinatario = "client@example.com";
-        String nombreCliente = "Pedro López";
-        String fechaCita = "Lunes 20 de Enero, 2026";
-        String horaCita = "10:00 AM";
-        String nombreServicio = "Corte de Cabello";
-        String nombreNegocio = "Barbería El Clásico";
-
-        when(mockResponse.getStatusCode()).thenReturn(202);
-
-        try (MockedConstruction<SendGrid> mockedSendGrid = mockConstruction(SendGrid.class,
-                (mock, context) -> when(mock.api(any(Request.class))).thenReturn(mockResponse))) {
-
-            // When
-            boolean result = emailService.enviarRecordatorioCita(
-                    destinatario, nombreCliente, fechaCita, horaCita, nombreServicio, nombreNegocio
-            );
-
-            // Then
-            assertTrue(result);
-        }
-    }
-
-    @Test
-    void testEnviarRecordatorioCita_MetodoDeprecado() throws IOException {
-        // Given
-        String destinatario = "client@example.com";
-        String nombreCliente = "Pedro López";
-        String fechaHora = "Lunes 20 de Enero, 2026 - 10:00 AM";
-        String nombreServicio = "Corte de Cabello";
-        String nombreNegocio = "Barbería El Clásico";
-
-        when(mockResponse.getStatusCode()).thenReturn(202);
-
-        try (MockedConstruction<SendGrid> mockedSendGrid = mockConstruction(SendGrid.class,
-                (mock, context) -> when(mock.api(any(Request.class))).thenReturn(mockResponse))) {
-
-            // When
-            @SuppressWarnings("deprecation")
-            boolean result = emailService.enviarRecordatorioCita(
-                    destinatario, nombreCliente, fechaHora, nombreServicio, nombreNegocio
-            );
-
-            // Then
-            assertTrue(result);
-        }
-    }
-
-    @Test
-    void testEnviarConfirmacionCita_Exitoso() throws IOException {
-        // Given
-        String destinatario = "client@example.com";
-        String nombreCliente = "Ana Martínez";
-        String fechaHora = "Viernes 24 de Enero, 2026 - 3:00 PM";
-        String nombreServicio = "Masaje Relajante";
-
-        when(mockResponse.getStatusCode()).thenReturn(202);
-
-        try (MockedConstruction<SendGrid> mockedSendGrid = mockConstruction(SendGrid.class,
-                (mock, context) -> when(mock.api(any(Request.class))).thenReturn(mockResponse))) {
-
-            // When
-            boolean result = emailService.enviarConfirmacionCita(
-                    destinatario, nombreCliente, fechaHora, nombreServicio
-            );
-
-            // Then
-            assertTrue(result);
-        }
-    }
-
-    @Test
-    void testEnviarEmailInvitacionUsuario_Exitoso() throws IOException {
-        // Given
-        String destinatario = "newemployee@example.com";
-        String nombreUsuario = "Carlos Ruiz";
-        String nombreNegocio = "Spa Bienestar";
-        String passwordTemporal = "Temp123!";
-
-        when(mockResponse.getStatusCode()).thenReturn(202);
-
-        try (MockedConstruction<SendGrid> mockedSendGrid = mockConstruction(SendGrid.class,
-                (mock, context) -> when(mock.api(any(Request.class))).thenReturn(mockResponse))) {
-
-            // When
-            boolean result = emailService.enviarEmailInvitacionUsuario(
-                    destinatario, nombreUsuario, nombreNegocio, passwordTemporal
-            );
-
-            // Then
-            assertTrue(result);
-        }
-    }
-
-    @Test
-    void testEnviarEmailVerificacion_Exitoso() throws IOException {
-        // Given
-        String destinatario = "user@example.com";
-        String nombreUsuario = "Laura Sánchez";
-        String verificationUrl = "https://example.com/verify/abc123xyz";
-
-        when(mockResponse.getStatusCode()).thenReturn(202);
-
-        try (MockedConstruction<SendGrid> mockedSendGrid = mockConstruction(SendGrid.class,
-                (mock, context) -> when(mock.api(any(Request.class))).thenReturn(mockResponse))) {
-
-            // When
-            boolean result = emailService.enviarEmailVerificacion(
-                    destinatario, nombreUsuario, verificationUrl
-            );
-
-            // Then
-            assertTrue(result);
-        }
-    }
-
-    @Test
-    void testEnviarEmailVerificacion_SendGridNoConfigurado() {
-        // Given
-        ReflectionTestUtils.setField(emailService, "sendGridApiKey", null);
-        String destinatario = "user@example.com";
-        String nombreUsuario = "Laura Sánchez";
-        String verificationUrl = "https://example.com/verify/abc123xyz";
+        ReflectionTestUtils.setField(emailService, "resendApiKey", "");
 
         // When
-        boolean result = emailService.enviarEmailVerificacion(
-                destinatario, nombreUsuario, verificationUrl
+        boolean result = emailService.enviarEmailConTemplate(
+                "user@example.com", "ref-template-001", Map.of("nombre", "Juan")
         );
 
         // Then
         assertFalse(result);
+        assertFalse(emailService.wasPostCalled());
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // enviarConfirmacionRegistro
+    // ─────────────────────────────────────────────────────────────────
+
+    @Test
+    void testEnviarConfirmacionRegistro_Exitoso() {
+        // Given
+        emailService.willReturn("email-id-003");
+
+        // When
+        boolean result = emailService.enviarConfirmacionRegistro("newuser@example.com", "María García");
+
+        // Then
+        assertTrue(result);
+        assertTrue(emailService.wasPostCalled());
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // enviarRecordatorioCita
+    // ─────────────────────────────────────────────────────────────────
+
+    @Test
+    void testEnviarRecordatorioCita_Exitoso() {
+        // Given
+        emailService.willReturn("email-id-004");
+
+        // When
+        boolean result = emailService.enviarRecordatorioCita(
+                "client@example.com", "Pedro López",
+                "Lunes 20 de Enero, 2026", "10:00 AM",
+                "Corte de Cabello", "Barbería El Clásico"
+        );
+
+        // Then
+        assertTrue(result);
+        assertTrue(emailService.wasPostCalled());
+    }
+
+    @Test
+    void testEnviarRecordatorioCita_MetodoDeprecado() {
+        // Given
+        emailService.willReturn("email-id-005");
+
+        // When
+        @SuppressWarnings("deprecation")
+        boolean result = emailService.enviarRecordatorioCita(
+                "client@example.com", "Pedro López",
+                "Lunes 20 de Enero, 2026 - 10:00 AM",
+                "Corte de Cabello", "Barbería El Clásico"
+        );
+
+        // Then
+        assertTrue(result);
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // enviarConfirmacionCita
+    // ─────────────────────────────────────────────────────────────────
+
+    @Test
+    void testEnviarConfirmacionCita_Exitoso() {
+        // Given
+        emailService.willReturn("email-id-006");
+
+        // When
+        boolean result = emailService.enviarConfirmacionCita(
+                "client@example.com", "Ana Martínez",
+                "Viernes 24 de Enero, 2026 - 3:00 PM", "Masaje Relajante"
+        );
+
+        // Then
+        assertTrue(result);
+        assertTrue(emailService.wasPostCalled());
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // enviarEmailInvitacionUsuario
+    // ─────────────────────────────────────────────────────────────────
+
+    @Test
+    void testEnviarEmailInvitacionUsuario_Exitoso() {
+        // Given
+        emailService.willReturn("email-id-007");
+
+        // When
+        boolean result = emailService.enviarEmailInvitacionUsuario(
+                "newemployee@example.com", "Carlos Ruiz", "Spa Bienestar", "Temp123!"
+        );
+
+        // Then
+        assertTrue(result);
+        assertTrue(emailService.wasPostCalled());
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // enviarEmailVerificacion
+    // ─────────────────────────────────────────────────────────────────
+
+    @Test
+    void testEnviarEmailVerificacion_Exitoso() {
+        // Given
+        emailService.willReturn("email-id-008");
+
+        // When
+        boolean result = emailService.enviarEmailVerificacion(
+                "user@example.com", "Laura Sánchez",
+                "https://example.com/verify/abc123xyz"
+        );
+
+        // Then
+        assertTrue(result);
+        assertTrue(emailService.wasPostCalled());
+    }
+
+    @Test
+    void testEnviarEmailVerificacion_ResendNoConfigurado() {
+        // Given
+        ReflectionTestUtils.setField(emailService, "resendApiKey", null);
+
+        // When
+        boolean result = emailService.enviarEmailVerificacion(
+                "user@example.com", "Laura Sánchez",
+                "https://example.com/verify/abc123xyz"
+        );
+
+        // Then
+        assertFalse(result);
+        assertFalse(emailService.wasPostCalled());
     }
 }

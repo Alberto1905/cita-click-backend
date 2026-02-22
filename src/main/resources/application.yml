@@ -153,19 +153,15 @@ twilio:
     number: ${TWILIO_WHATSAPP_NUMBER:}
 
 # ============================================================================
-# SENDGRID CONFIGURATION (Email)
+# RESEND CONFIGURATION (Email)
 # ============================================================================
-sendgrid:
+resend:
   api:
-    key: ${SENDGRID_API_KEY}
+    key: ${RESEND_API_KEY:}
 
   from:
-    email: ${SENDGRID_FROM_EMAIL:info@citaclick.com.mx}
-    name: ${SENDGRID_FROM_NAME:Cita Click}
-
-  template:
-    verification: ${SENDGRID_TEMPLATE_VERIFICATION:d-feb3b116023c461999dd46f216bae714}
-    reminder: ${SENDGRID_TEMPLATE_REMINDER:d-c78b754e23e84a9c87594a76e9d852b6}
+    email: ${RESEND_FROM_EMAIL:info@citaclick.com.mx}
+    name: ${RESEND_FROM_NAME:Cita Click}
 
 # ============================================================================
 # GOOGLE CLOUD PLATFORM (Cloud Storage)

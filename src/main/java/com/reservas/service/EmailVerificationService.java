@@ -39,7 +39,7 @@ public class EmailVerificationService {
     }
 
     /**
-     * Envía un email de verificación al usuario usando SendGrid Dynamic Template
+     * Envía un email de verificación al usuario usando Resend
      */
     @Transactional
     public void enviarEmailVerificacion(Usuario usuario) {
@@ -54,7 +54,7 @@ public class EmailVerificationService {
         // Construir URL de verificación
         String verificationUrl = frontendUrl + "/verify-email?token=" + token;
 
-        // Enviar email usando el Dynamic Template de SendGrid
+        // Enviar email usando Resend
         emailService.enviarEmailVerificacion(usuario.getEmail(), usuario.getNombre(), verificationUrl);
 
         log.info("[Email Verificación] Email de verificación enviado a: {}", usuario.getEmail());

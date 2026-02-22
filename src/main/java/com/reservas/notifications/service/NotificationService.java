@@ -34,7 +34,7 @@ public class NotificationService {
 
     public NotificationService(
             @Qualifier("twilioWhatsAppProvider") NotificationProvider whatsappProvider,
-            @Qualifier("sendGridEmailProvider") NotificationProvider emailProvider,
+            @Qualifier("resendEmailProvider") NotificationProvider emailProvider,
             NotificationLogRepository notificationLogRepository,
             UsuarioRepository usuarioRepository
     ) {
@@ -73,7 +73,7 @@ public class NotificationService {
 
         NotificationResult result = emailProvider.send(request);
 
-        return saveNotificationLog(request, result, NotificationLog.NotificationProvider.SENDGRID);
+        return saveNotificationLog(request, result, NotificationLog.NotificationProvider.RESEND);
     }
 
     /**

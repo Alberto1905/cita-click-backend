@@ -216,11 +216,14 @@ public class NotificationLog {
      * Proveedores de notificaciones
      */
     public enum NotificationProvider {
-        SENDGRID,
+        RESEND,
         TWILIO,
         AWS_SES,
         FIREBASE,
-        INTERNAL
+        INTERNAL,
+        /** @deprecated Mantenido por compatibilidad con registros históricos en BD */
+        @Deprecated
+        SENDGRID
     }
 
     /**

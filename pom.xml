@@ -100,13 +100,6 @@
 			<version>9.2.0</version>
 		</dependency>
 
-		<!-- SendGrid -->
-		<dependency>
-			<groupId>com.sendgrid</groupId>
-			<artifactId>sendgrid-java</artifactId>
-			<version>4.10.2</version>
-		</dependency>
-
 		<!-- Bucket4j para Rate Limiting -->
 		<dependency>
 			<groupId>com.bucket4j</groupId>
