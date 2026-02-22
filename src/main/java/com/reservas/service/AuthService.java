@@ -295,6 +295,9 @@ public class AuthService {
 
             usuario = usuarioRepository.save(usuario);
 
+            // Enviar email de verificación (igual que en registro normal)
+            emailVerificationService.enviarEmailVerificacion(usuario);
+
             log.info("Usuario registrado exitosamente desde Google: {}", googleUser.getEmail());
         }
 

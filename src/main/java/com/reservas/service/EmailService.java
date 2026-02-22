@@ -4,11 +4,14 @@ import com.reservas.entity.PlantillaEmailConfig;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,18 +21,15 @@ import java.util.Map;
  * Documentación: https://resend.com/docs/api-reference/emails/send-email
  *
  * Soporta dos modos de envío:
- *  - HTML inline:  enviarEmail() — para emails sin template configurado
- *  - Template ID:  enviarConTemplateResend() — usa templates creados en Resend Dashboard
+ *  - HTML inline:        enviarEmail() — para emails one-off (confirmación, invitación, etc.)
+ *  - Classpath template: enviarConTemplate() — carga archivos HTML de
+ *    src/main/resources/email-templates/, reemplaza {{variable}} y envía con campo "html"
  */
 @Service
 @Slf4j
 public class EmailService {
 
     private static final String RESEND_API_URL = "https://api.resend.com/emails";
-
-    // ──────────────────────────────────────────
-    // Credenciales y remitente
-    // ──────────────────────────────────────────
 
     @Value("${resend.api.key:}")
     private String resendApiKey;
@@ -39,28 +39,6 @@ public class EmailService {
 
     @Value("${resend.from.name:Sistema de Reservas}")
     private String fromName;
-
-    // ──────────────────────────────────────────
-    // Template IDs (creados en Resend Dashboard)
-    // ──────────────────────────────────────────
-
-    /** Template: verificación de correo electrónico */
-    @Value("${resend.templates.verificacion-correo:}")
-    private String templateVerificacion;
-
-    /** Template: recordatorio de cita — diseño Clásico */
-    @Value("${resend.templates.recordatorio-clasico:}")
-    private String templateRecordatorioClasico;
-
-    /** Template: recordatorio de cita — diseño Moderno */
-    @Value("${resend.templates.recordatorio-moderno:}")
-    private String templateRecordatorioModerno;
-
-    /** Template: recordatorio de cita — diseño Minimalista */
-    @Value("${resend.templates.recordatorio-minimalista:}")
-    private String templateRecordatorioMinimalista;
-
-    // ──────────────────────────────────────────
 
     private RestTemplate restTemplate;
 
@@ -84,76 +62,64 @@ public class EmailService {
     }
 
     // ══════════════════════════════════════════════════════════════════
-    // ENVÍO CON TEMPLATE DE RESEND
+    // CARGA Y RENDERIZADO DE TEMPLATES (classpath)
     // ══════════════════════════════════════════════════════════════════
 
     /**
-     * Envía un email usando un template creado en el Dashboard de Resend.
-     * Las variables reemplazan los placeholders {@code {{variable}}} del template HTML.
-     *
-     * Ref API: POST https://api.resend.com/emails
-     *         body: { template_id, variables, from, to, subject }
-     *
-     * @param destinatario Email del destinatario
-     * @param asunto       Asunto del email (sobreescribe el asunto del template si aplica)
-     * @param templateId   ID del template configurado en Resend Dashboard
-     * @param variables    Mapa de variables para reemplazar en el template
-     * @return true si se envió correctamente
+     * Carga el contenido HTML de un template desde el classpath.
+     * Los archivos deben estar en: src/main/resources/email-templates/{nombre}.html
      */
-    private boolean enviarConTemplateResend(String destinatario, String asunto,
-                                            String templateId, Map<String, Object> variables) {
-        if (resendApiKey == null || resendApiKey.isBlank()) {
-            log.warn("⚠️ Resend no configurado. Email no enviado a: {}", destinatario);
-            return false;
-        }
-        if (templateId == null || templateId.isBlank()) {
-            log.warn("⚠️ Template ID no configurado para el asunto '{}'. Verifica la variable de entorno.", asunto);
-            return false;
-        }
-
-        log.info("[Resend] Enviando email con template '{}' a: {}", templateId, destinatario);
-
+    private String cargarTemplate(String nombre) {
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(resendApiKey);
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            Map<String, Object> body = new HashMap<>();
-            body.put("from", fromName + " <" + fromEmail + ">");
-            body.put("to", List.of(destinatario));
-            body.put("subject", asunto);
-            body.put("template_id", templateId);
-            body.put("variables", variables);
-
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-            ResponseEntity<Map> response = doPost(RESEND_API_URL, request);
-
-            if (response.getStatusCode().is2xxSuccessful()) {
-                String emailId = response.getBody() != null ? (String) response.getBody().get("id") : null;
-                log.info("✅ Email enviado a: {} | template: {} | id: {}", destinatario, templateId, emailId);
-                return true;
-            } else {
-                log.error("❌ Error al enviar email. Status: {} | template: {}", response.getStatusCode(), templateId);
-                return false;
-            }
-        } catch (RestClientException e) {
-            log.error("❌ Error al enviar email a {}: {}", destinatario, e.getMessage(), e);
-            return false;
-        } catch (Exception e) {
-            log.error("❌ Error inesperado al enviar email: {}", e.getMessage(), e);
-            return false;
+            ClassPathResource resource = new ClassPathResource("email-templates/" + nombre + ".html");
+            return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.error("[Resend] No se pudo cargar el template '{}': {}", nombre, e.getMessage());
+            return null;
         }
     }
 
     /**
-     * Devuelve el template ID de recordatorio según el diseño de la plantilla del negocio.
+     * Reemplaza los placeholders {@code {{variable}}} del template HTML con los valores del mapa.
      */
-    private String resolverTemplateRecordatorio(PlantillaEmailConfig.TipoDiseno diseno) {
-        if (diseno == null) return templateRecordatorioClasico;
+    private String renderTemplate(String html, Map<String, String> variables) {
+        for (Map.Entry<String, String> entry : variables.entrySet()) {
+            html = html.replace("{{" + entry.getKey() + "}}",
+                                entry.getValue() != null ? entry.getValue() : "");
+        }
+        return html;
+    }
+
+    /**
+     * Carga el template, reemplaza variables y envía con el campo "html".
+     * Este es el método principal para emails con diseño personalizado.
+     *
+     * @param destinatario   Email del destinatario
+     * @param asunto         Asunto del email
+     * @param templateNombre Nombre del archivo sin extensión (ej: "verificacion-correo")
+     * @param variables      Mapa de variables para reemplazar en el template
+     * @return true si se envió correctamente
+     */
+    private boolean enviarConTemplate(String destinatario, String asunto,
+                                      String templateNombre, Map<String, String> variables) {
+        String html = cargarTemplate(templateNombre);
+        if (html == null) {
+            log.error("[Resend] Template '{}' no encontrado. Email no enviado a: {}", templateNombre, destinatario);
+            return false;
+        }
+        html = renderTemplate(html, variables);
+        return enviarEmail(destinatario, asunto, html);
+    }
+
+    /**
+     * Devuelve el nombre del archivo de template según el diseño del negocio.
+     */
+    private String resolverNombreTemplate(PlantillaEmailConfig.TipoDiseno diseno) {
+        if (diseno == null) return "recordatorio-clasico";
         return switch (diseno) {
-            case MODERNO      -> templateRecordatorioModerno;
-            case MINIMALISTA  -> templateRecordatorioMinimalista;
-            default           -> templateRecordatorioClasico;
+            case MODERNO     -> "recordatorio-moderno";
+            case MINIMALISTA -> "recordatorio-minimalista";
+            default          -> "recordatorio-clasico";
         };
     }
 
@@ -162,8 +128,8 @@ public class EmailService {
     // ══════════════════════════════════════════════════════════════════
 
     /**
-     * Envía un email simple con HTML inline usando la API de Resend.
-     * Úsalo cuando no haya un template configurado o para emails one-off.
+     * Envía un email con HTML inline usando la API de Resend.
+     * Úsalo cuando no haya un template de classpath o para emails one-off.
      *
      * @param destinatario Email del destinatario
      * @param asunto       Asunto del email
@@ -247,15 +213,7 @@ public class EmailService {
     }
 
     /**
-     * Envía recordatorio de cita usando el template Clásico de Resend.
-     *
-     * @param destinatario   Email del cliente
-     * @param nombreCliente  Nombre del cliente
-     * @param fechaCita      Fecha de la cita (ej: "Lunes 20 de Enero, 2026")
-     * @param horaCita       Hora de la cita (ej: "10:00 AM")
-     * @param nombreServicio Nombre del servicio
-     * @param nombreNegocio  Nombre del negocio
-     * @return true si se envió correctamente
+     * Envía recordatorio de cita usando el template Clásico (diseño por defecto).
      */
     public boolean enviarRecordatorioCita(String destinatario, String nombreCliente, String fechaCita,
                                           String horaCita, String nombreServicio, String nombreNegocio) {
@@ -265,6 +223,9 @@ public class EmailService {
 
     /**
      * Envía recordatorio de cita usando el template del diseño elegido por el negocio.
+     * El HTML se carga desde src/main/resources/email-templates/ y las variables
+     * {@code {{nombreCliente}}}, {@code {{nombreServicio}}}, {@code {{fechaCita}}},
+     * {@code {{horaCita}}}, {@code {{nombreNegocio}}} son reemplazadas antes de enviar.
      *
      * @param diseno Diseño de la plantilla del negocio (CLASICO, MODERNO, MINIMALISTA)
      */
@@ -272,16 +233,15 @@ public class EmailService {
                                           String horaCita, String nombreServicio, String nombreNegocio,
                                           PlantillaEmailConfig.TipoDiseno diseno) {
         String asunto = String.format("Recordatorio de cita - %s", nombreNegocio);
-        String templateId = resolverTemplateRecordatorio(diseno);
 
-        Map<String, Object> variables = new HashMap<>();
+        Map<String, String> variables = new HashMap<>();
         variables.put("nombreCliente",  nombreCliente);
         variables.put("nombreServicio", nombreServicio);
         variables.put("fechaCita",      fechaCita);
         variables.put("horaCita",       horaCita);
         variables.put("nombreNegocio",  nombreNegocio);
 
-        return enviarConTemplateResend(destinatario, asunto, templateId, variables);
+        return enviarConTemplate(destinatario, asunto, resolverNombreTemplate(diseno), variables);
     }
 
     /**
@@ -348,21 +308,21 @@ public class EmailService {
     }
 
     /**
-     * Envía email de verificación de cuenta usando el template de Resend.
-     * Variables en template: {@code {{nombre}}}, {@code {{verificationUrl}}}
+     * Envía email de verificación de cuenta usando el template HTML del classpath.
+     * Variables reemplazadas: {@code {{nombre}}}, {@code {{verificationUrl}}}
      *
      * @param destinatario    Email del destinatario
      * @param nombreUsuario   Nombre del usuario
-     * @param verificationUrl URL de verificación
+     * @param verificationUrl URL de verificación (expira en 24 horas)
      * @return true si se envió correctamente
      */
     public boolean enviarEmailVerificacion(String destinatario, String nombreUsuario, String verificationUrl) {
         String asunto = "Verifica tu cuenta en Cita Click";
 
-        Map<String, Object> variables = new HashMap<>();
+        Map<String, String> variables = new HashMap<>();
         variables.put("nombre",          nombreUsuario);
         variables.put("verificationUrl", verificationUrl);
 
-        return enviarConTemplateResend(destinatario, asunto, templateVerificacion, variables);
+        return enviarConTemplate(destinatario, asunto, "verificacion-correo", variables);
     }
 }

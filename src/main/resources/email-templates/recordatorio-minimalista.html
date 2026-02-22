@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Recordatorio de Cita - Cita Click</title>
+</head>
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+
+  <!-- Outer wrapper -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+         style="background-color:#fafafa;padding:48px 16px;">
+    <tr>
+      <td align="center">
+
+        <!-- Card container -->
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0"
+               style="max-width:560px;width:100%;background-color:#ffffff;border-radius:4px;overflow:hidden;
+                      box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+
+          <!-- ── TOP ACCENT BAR ── -->
+          <tr>
+            <td style="height:3px;background:linear-gradient(90deg,#2563eb 0%,#7c3aed 100%);"></td>
+          </tr>
+
+          <!-- ── HEADER ── -->
+          <tr>
+            <td style="padding:36px 48px 28px 48px;">
+              <!-- Brand -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td>
+                    <span style="font-size:15px;font-weight:800;color:#7c3aed;letter-spacing:-0.3px;">
+                      Cita Click
+                    </span>
+                  </td>
+                  <td align="right">
+                    <span style="background-color:#f5f3ff;color:#7c3aed;font-size:11px;font-weight:700;
+                                 padding:4px 12px;border-radius:50px;letter-spacing:0.5px;text-transform:uppercase;">
+                      Recordatorio
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── TITLE SECTION ── -->
+          <tr>
+            <td style="padding:0 48px 32px 48px;">
+              <!-- Thin divider -->
+              <div style="height:1px;background-color:#f3f4f6;margin-bottom:28px;"></div>
+
+              <h1 style="color:#111827;font-size:24px;font-weight:700;margin:0 0 12px 0;
+                         line-height:1.3;letter-spacing:-0.3px;">
+                Tienes una cita próxima
+              </h1>
+              <p style="color:#6b7280;font-size:15px;line-height:1.7;margin:0;">
+                Hola <strong style="color:#374151;">{{nombreCliente}}</strong>, te recordamos
+                tu cita en <strong style="color:#374151;">{{nombreNegocio}}</strong>.
+              </p>
+            </td>
+          </tr>
+
+          <!-- ── DETAIL LIST ── -->
+          <tr>
+            <td style="padding:0 48px 32px 48px;">
+
+              <!-- Servicio row -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+                     style="border-top:1px solid #f3f4f6;">
+                <tr>
+                  <td style="padding:16px 0;width:38%;vertical-align:middle;">
+                    <span style="color:#9ca3af;font-size:12px;font-weight:600;
+                                 text-transform:uppercase;letter-spacing:0.8px;">Servicio</span>
+                  </td>
+                  <td style="padding:16px 0;vertical-align:middle;">
+                    <span style="color:#111827;font-size:15px;font-weight:600;">{{nombreServicio}}</span>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Fecha row -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+                     style="border-top:1px solid #f3f4f6;">
+                <tr>
+                  <td style="padding:16px 0;width:38%;vertical-align:middle;">
+                    <span style="color:#9ca3af;font-size:12px;font-weight:600;
+                                 text-transform:uppercase;letter-spacing:0.8px;">Fecha</span>
+                  </td>
+                  <td style="padding:16px 0;vertical-align:middle;">
+                    <span style="color:#111827;font-size:15px;font-weight:600;">{{fechaCita}}</span>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Hora row — highlighted -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+                     style="border-top:1px solid #f3f4f6;">
+                <tr>
+                  <td style="padding:16px 0;width:38%;vertical-align:middle;">
+                    <span style="color:#9ca3af;font-size:12px;font-weight:600;
+                                 text-transform:uppercase;letter-spacing:0.8px;">Hora</span>
+                  </td>
+                  <td style="padding:16px 0;vertical-align:middle;">
+                    <span style="color:#7c3aed;font-size:22px;font-weight:800;
+                                 letter-spacing:-0.5px;">{{horaCita}}</span>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Lugar row -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+                     style="border-top:1px solid #f3f4f6;border-bottom:1px solid #f3f4f6;">
+                <tr>
+                  <td style="padding:16px 0;width:38%;vertical-align:middle;">
+                    <span style="color:#9ca3af;font-size:12px;font-weight:600;
+                                 text-transform:uppercase;letter-spacing:0.8px;">Lugar</span>
+                  </td>
+                  <td style="padding:16px 0;vertical-align:middle;">
+                    <span style="color:#111827;font-size:15px;font-weight:600;">{{nombreNegocio}}</span>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- ── CLOSING NOTE ── -->
+          <tr>
+            <td style="padding:0 48px 36px 48px;">
+              <p style="color:#9ca3af;font-size:13px;line-height:1.7;margin:0;">
+                Si necesitas cancelar o reprogramar, por favor contáctanos con anticipación.
+              </p>
+            </td>
+          </tr>
+
+          <!-- ── BOTTOM ACCENT BAR ── -->
+          <tr>
+            <td style="height:1px;background-color:#f3f4f6;"></td>
+          </tr>
+
+          <!-- ── FOOTER ── -->
+          <tr>
+            <td style="padding:20px 48px;text-align:left;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td>
+                    <p style="color:#d1d5db;font-size:12px;margin:0;line-height:1.5;">
+                      © 2025 <strong style="color:#9ca3af;">Cita Click</strong>
+                      · Este es un mensaje automático
+                    </p>
+                  </td>
+                  <td align="right">
+                    <span style="color:#e5e7eb;font-size:18px;">📅</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── BOTTOM ACCENT LINE ── -->
+          <tr>
+            <td style="height:3px;background:linear-gradient(90deg,#7c3aed 0%,#2563eb 100%);"></td>
+          </tr>
+
+        </table>
+        <!-- /Card container -->
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

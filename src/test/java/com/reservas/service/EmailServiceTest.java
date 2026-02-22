@@ -18,6 +18,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * Usa el patrón de subclase de prueba (test-double) que sobrescribe el método
  * protegido doPost() para evitar llamadas HTTP reales y problemas con
  * la instrumentación de bytecode de Mockito en Java 23.
+ *
+ * Los templates HTML se cargan desde el classpath (src/main/resources/email-templates/)
+ * mediante ClassPathResource — disponible en el classpath de tests gracias a Maven.
  */
 class EmailServiceTest {
 
@@ -75,25 +78,14 @@ class EmailServiceTest {
     // Setup
     // ─────────────────────────────────────────────────────────────────
 
-    /** Template IDs que usa el servicio (igual que application.yml defaults) */
-    private static final String TEMPLATE_VERIFICACION       = "verificacin-correo-electrnico";
-    private static final String TEMPLATE_RECORDATORIO_CLA   = "recordatorio-clasico";
-    private static final String TEMPLATE_RECORDATORIO_MOD   = "recordatorio-moderno";
-    private static final String TEMPLATE_RECORDATORIO_MINI  = "recordatorio-minimalista";
-
     private TestEmailService emailService;
 
     @BeforeEach
     void setUp() {
         emailService = new TestEmailService();
-        ReflectionTestUtils.setField(emailService, "resendApiKey",               "re_test-api-key-12345");
-        ReflectionTestUtils.setField(emailService, "fromEmail",                  "noreply@test.com");
-        ReflectionTestUtils.setField(emailService, "fromName",                   "Test System");
-        // Template IDs
-        ReflectionTestUtils.setField(emailService, "templateVerificacion",       TEMPLATE_VERIFICACION);
-        ReflectionTestUtils.setField(emailService, "templateRecordatorioClasico",    TEMPLATE_RECORDATORIO_CLA);
-        ReflectionTestUtils.setField(emailService, "templateRecordatorioModerno",    TEMPLATE_RECORDATORIO_MOD);
-        ReflectionTestUtils.setField(emailService, "templateRecordatorioMinimalista",TEMPLATE_RECORDATORIO_MINI);
+        ReflectionTestUtils.setField(emailService, "resendApiKey", "re_test-api-key-12345");
+        ReflectionTestUtils.setField(emailService, "fromEmail",    "noreply@test.com");
+        ReflectionTestUtils.setField(emailService, "fromName",     "Test System");
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -108,7 +100,7 @@ class EmailServiceTest {
 
         assertTrue(result);
         assertTrue(emailService.wasPostCalled());
-        // Debe enviar el campo "html", no template_id
+        // Debe enviar el campo "html", nunca "template_id"
         assertTrue(emailService.lastBody().containsKey("html"));
         assertFalse(emailService.lastBody().containsKey("template_id"));
     }
@@ -195,7 +187,7 @@ class EmailServiceTest {
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // enviarRecordatorioCita — templates de Resend
+    // enviarRecordatorioCita — templates cargados del classpath
     // ─────────────────────────────────────────────────────────────────
 
     @Test
@@ -210,11 +202,11 @@ class EmailServiceTest {
 
         assertTrue(result);
         assertTrue(emailService.wasPostCalled());
-        // Verifica que se envió con template_id y variables (no html inline)
+        // Verifica que se envió HTML (no template_id ni variables)
         Map<String, Object> body = emailService.lastBody();
-        assertEquals(TEMPLATE_RECORDATORIO_CLA, body.get("template_id"));
-        assertTrue(body.containsKey("variables"));
-        assertFalse(body.containsKey("html"));
+        assertTrue(body.containsKey("html"));
+        assertFalse(body.containsKey("template_id"));
+        assertFalse(body.containsKey("variables"));
     }
 
     @Test
@@ -229,7 +221,8 @@ class EmailServiceTest {
         );
 
         assertTrue(result);
-        assertEquals(TEMPLATE_RECORDATORIO_MOD, emailService.lastBody().get("template_id"));
+        assertTrue(emailService.lastBody().containsKey("html"));
+        assertFalse(emailService.lastBody().containsKey("template_id"));
     }
 
     @Test
@@ -244,26 +237,12 @@ class EmailServiceTest {
         );
 
         assertTrue(result);
-        assertEquals(TEMPLATE_RECORDATORIO_MINI, emailService.lastBody().get("template_id"));
+        assertTrue(emailService.lastBody().containsKey("html"));
+        assertFalse(emailService.lastBody().containsKey("template_id"));
     }
 
     @Test
-    void testEnviarRecordatorioCita_TemplateNoConfigurado() {
-        // Si el template ID está vacío, no debe enviar
-        ReflectionTestUtils.setField(emailService, "templateRecordatorioClasico", "");
-
-        boolean result = emailService.enviarRecordatorioCita(
-                "client@example.com", "Pedro López",
-                "Lunes 20 de Enero, 2026", "10:00 AM",
-                "Corte de Cabello", "Barbería El Clásico"
-        );
-
-        assertFalse(result);
-        assertFalse(emailService.wasPostCalled());
-    }
-
-    @Test
-    void testEnviarRecordatorioCita_VariablesCorrectas() {
+    void testEnviarRecordatorioCita_VariablesReemplazadasEnHTML() {
         emailService.willReturn("email-id-004d");
 
         emailService.enviarRecordatorioCita(
@@ -272,14 +251,15 @@ class EmailServiceTest {
                 "Corte de Cabello", "Barbería El Clásico"
         );
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> variables = (Map<String, Object>) emailService.lastBody().get("variables");
-        assertNotNull(variables);
-        assertEquals("Pedro López",              variables.get("nombreCliente"));
-        assertEquals("Corte de Cabello",         variables.get("nombreServicio"));
-        assertEquals("Lunes 20 de Enero, 2026",  variables.get("fechaCita"));
-        assertEquals("10:00 AM",                 variables.get("horaCita"));
-        assertEquals("Barbería El Clásico",      variables.get("nombreNegocio"));
+        String html = (String) emailService.lastBody().get("html");
+        assertNotNull(html, "El cuerpo debe contener HTML");
+        assertTrue(html.contains("Pedro López"),             "HTML debe contener nombreCliente");
+        assertTrue(html.contains("Corte de Cabello"),        "HTML debe contener nombreServicio");
+        assertTrue(html.contains("Lunes 20 de Enero, 2026"), "HTML debe contener fechaCita");
+        assertTrue(html.contains("10:00 AM"),                "HTML debe contener horaCita");
+        assertTrue(html.contains("Barbería El Clásico"),     "HTML debe contener nombreNegocio");
+        // No deben quedar placeholders sin reemplazar
+        assertFalse(html.contains("{{"), "No deben quedar placeholders sin reemplazar");
     }
 
     @Test
@@ -294,8 +274,9 @@ class EmailServiceTest {
         );
 
         assertTrue(result);
-        // El método deprecated delega al método principal (que usa el template Clásico)
-        assertEquals(TEMPLATE_RECORDATORIO_CLA, emailService.lastBody().get("template_id"));
+        // El método deprecated delega al principal (html inline, no template_id)
+        assertTrue(emailService.lastBody().containsKey("html"));
+        assertFalse(emailService.lastBody().containsKey("template_id"));
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -332,7 +313,7 @@ class EmailServiceTest {
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // enviarEmailVerificacion — template de Resend
+    // enviarEmailVerificacion — template cargado del classpath
     // ─────────────────────────────────────────────────────────────────
 
     @Test
@@ -346,15 +327,15 @@ class EmailServiceTest {
 
         assertTrue(result);
         assertTrue(emailService.wasPostCalled());
-        // Verifica que se envió con template_id y variables
+        // Verifica que se envió con html (no template_id)
         Map<String, Object> body = emailService.lastBody();
-        assertEquals(TEMPLATE_VERIFICACION, body.get("template_id"));
-        assertTrue(body.containsKey("variables"));
-        assertFalse(body.containsKey("html"));
+        assertTrue(body.containsKey("html"));
+        assertFalse(body.containsKey("template_id"));
+        assertFalse(body.containsKey("variables"));
     }
 
     @Test
-    void testEnviarEmailVerificacion_VariablesCorrectas() {
+    void testEnviarEmailVerificacion_VariablesReemplazadasEnHTML() {
         emailService.willReturn("email-id-008b");
 
         emailService.enviarEmailVerificacion(
@@ -362,25 +343,12 @@ class EmailServiceTest {
                 "https://example.com/verify/abc123xyz"
         );
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> variables = (Map<String, Object>) emailService.lastBody().get("variables");
-        assertNotNull(variables);
-        assertEquals("Laura Sánchez",                    variables.get("nombre"));
-        assertEquals("https://example.com/verify/abc123xyz", variables.get("verificationUrl"));
-    }
-
-    @Test
-    void testEnviarEmailVerificacion_TemplateNoConfigurado() {
-        // Si el template ID está vacío, no debe enviar
-        ReflectionTestUtils.setField(emailService, "templateVerificacion", "");
-
-        boolean result = emailService.enviarEmailVerificacion(
-                "user@example.com", "Laura Sánchez",
-                "https://example.com/verify/abc123xyz"
-        );
-
-        assertFalse(result);
-        assertFalse(emailService.wasPostCalled());
+        String html = (String) emailService.lastBody().get("html");
+        assertNotNull(html, "El cuerpo debe contener HTML");
+        assertTrue(html.contains("Laura Sánchez"),                        "HTML debe contener nombre");
+        assertTrue(html.contains("https://example.com/verify/abc123xyz"), "HTML debe contener verificationUrl");
+        // No deben quedar placeholders sin reemplazar
+        assertFalse(html.contains("{{"), "No deben quedar placeholders sin reemplazar");
     }
 
     @Test

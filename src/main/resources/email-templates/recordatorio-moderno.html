@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Recordatorio de Cita - Cita Click</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0f0a1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+
+  <!-- Outer wrapper with dark bg -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+         style="background:linear-gradient(160deg,#0f0a1e 0%,#1a0a3e 50%,#0f172a 100%);
+                padding:48px 16px;min-height:100%;">
+    <tr>
+      <td align="center">
+
+        <!-- Card container -->
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
+               style="max-width:600px;width:100%;border-radius:24px;overflow:hidden;
+                      background-color:#1e1535;
+                      box-shadow:0 25px 60px rgba(124,58,237,0.35),0 0 0 1px rgba(124,58,237,0.15);">
+
+          <!-- ── HERO HEADER ── -->
+          <tr>
+            <td style="padding:0;">
+              <!-- Gradient bar top -->
+              <div style="height:4px;background:linear-gradient(90deg,#2563eb 0%,#7c3aed 50%,#ec4899 100%);"></div>
+
+              <div style="padding:44px 44px 36px 44px;text-align:center;
+                          background:linear-gradient(180deg,rgba(124,58,237,0.15) 0%,transparent 100%);">
+
+                <!-- Brand -->
+                <p style="margin:0 0 28px 0;">
+                  <span style="background:linear-gradient(135deg,#2563eb,#7c3aed);
+                               -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                               color:#7c3aed;font-size:22px;font-weight:800;letter-spacing:-0.5px;">
+                    📅 Cita Click
+                  </span>
+                </p>
+
+                <!-- Big emoji -->
+                <div style="width:80px;height:80px;background:linear-gradient(135deg,#2563eb,#7c3aed);
+                            border-radius:50%;margin:0 auto 20px auto;line-height:80px;
+                            font-size:38px;text-align:center;
+                            box-shadow:0 8px 24px rgba(124,58,237,0.5);">
+                  🗓️
+                </div>
+
+                <h1 style="color:#ffffff;font-size:28px;font-weight:800;margin:0 0 10px 0;
+                           line-height:1.2;letter-spacing:-0.5px;">
+                  ¡Tu cita es pronto!
+                </h1>
+                <p style="color:rgba(255,255,255,0.6);font-size:15px;margin:0;line-height:1.5;">
+                  Tienes una cita programada en <span style="color:#a78bfa;font-weight:600;">{{nombreNegocio}}</span>
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- ── GREETING ── -->
+          <tr>
+            <td style="padding:8px 44px 0 44px;">
+              <p style="color:rgba(255,255,255,0.85);font-size:16px;line-height:1.7;margin:0;">
+                Hola, <strong style="color:#ffffff;">{{nombreCliente}}</strong> 👋 &nbsp;
+                Te escribimos para recordarte los detalles de tu próxima cita.
+              </p>
+            </td>
+          </tr>
+
+          <!-- ── DETAIL CARDS ── -->
+          <tr>
+            <td style="padding:28px 44px;">
+
+              <!-- Row 1: Servicio + Negocio -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+                     style="margin-bottom:14px;">
+                <tr>
+                  <!-- Servicio card -->
+                  <td width="49%" style="background:linear-gradient(135deg,rgba(37,99,235,0.2),rgba(124,58,237,0.2));
+                                         border:1px solid rgba(124,58,237,0.3);border-radius:14px;
+                                         padding:20px 22px;vertical-align:top;">
+                    <p style="color:rgba(255,255,255,0.5);font-size:11px;font-weight:700;
+                               text-transform:uppercase;letter-spacing:1px;margin:0 0 8px 0;">
+                      Servicio
+                    </p>
+                    <p style="color:#ffffff;font-size:16px;font-weight:700;margin:0;line-height:1.3;">
+                      {{nombreServicio}}
+                    </p>
+                  </td>
+
+                  <td width="2%"></td>
+
+                  <!-- Negocio card -->
+                  <td width="49%" style="background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(236,72,153,0.15));
+                                         border:1px solid rgba(124,58,237,0.3);border-radius:14px;
+                                         padding:20px 22px;vertical-align:top;">
+                    <p style="color:rgba(255,255,255,0.5);font-size:11px;font-weight:700;
+                               text-transform:uppercase;letter-spacing:1px;margin:0 0 8px 0;">
+                      📍 Lugar
+                    </p>
+                    <p style="color:#ffffff;font-size:16px;font-weight:700;margin:0;line-height:1.3;">
+                      {{nombreNegocio}}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Row 2: Fecha + Hora — Highlighted -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <!-- Fecha card -->
+                  <td width="49%" style="background:linear-gradient(135deg,#2563eb,#7c3aed);
+                                         border-radius:14px;padding:22px;vertical-align:top;
+                                         box-shadow:0 8px 24px rgba(124,58,237,0.4);">
+                    <p style="color:rgba(255,255,255,0.75);font-size:11px;font-weight:700;
+                               text-transform:uppercase;letter-spacing:1px;margin:0 0 8px 0;">
+                      📅 Fecha
+                    </p>
+                    <p style="color:#ffffff;font-size:18px;font-weight:800;margin:0;line-height:1.3;">
+                      {{fechaCita}}
+                    </p>
+                  </td>
+
+                  <td width="2%"></td>
+
+                  <!-- Hora card -->
+                  <td width="49%" style="background:linear-gradient(135deg,#7c3aed,#ec4899);
+                                         border-radius:14px;padding:22px;vertical-align:top;
+                                         box-shadow:0 8px 24px rgba(236,72,153,0.35);">
+                    <p style="color:rgba(255,255,255,0.75);font-size:11px;font-weight:700;
+                               text-transform:uppercase;letter-spacing:1px;margin:0 0 8px 0;">
+                      🕐 Hora
+                    </p>
+                    <p style="color:#ffffff;font-size:18px;font-weight:800;margin:0;line-height:1.3;">
+                      {{horaCita}}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- ── DIVIDER ── -->
+          <tr>
+            <td style="padding:0 44px;">
+              <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.4),transparent);
+                          margin-bottom:24px;"></div>
+            </td>
+          </tr>
+
+          <!-- ── CLOSING NOTE ── -->
+          <tr>
+            <td style="padding:0 44px 36px 44px;">
+              <p style="color:rgba(255,255,255,0.55);font-size:14px;line-height:1.75;margin:0;">
+                Si necesitas cancelar o cambiar el horario de tu cita, por favor contáctanos
+                con anticipación. ¡Esperamos verte pronto! ✨
+              </p>
+            </td>
+          </tr>
+
+          <!-- ── FOOTER ── -->
+          <tr>
+            <td style="border-top:1px solid rgba(124,58,237,0.2);
+                       padding:22px 44px;text-align:center;">
+              <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:0 0 4px 0;">
+                Gestionado con <strong style="color:#a78bfa;">Cita Click</strong>
+              </p>
+              <p style="color:rgba(255,255,255,0.25);font-size:11px;margin:0;">
+                © 2025 Cita Click · Este es un mensaje automático
+              </p>
+            </td>
+          </tr>
+
+          <!-- Bottom gradient bar -->
+          <tr>
+            <td style="height:4px;background:linear-gradient(90deg,#ec4899 0%,#7c3aed 50%,#2563eb 100%);"></td>
+          </tr>
+
+        </table>
+        <!-- /Card container -->
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
