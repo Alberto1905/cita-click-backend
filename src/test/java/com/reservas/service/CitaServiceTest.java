@@ -7,6 +7,7 @@ import com.reservas.exception.BadRequestException;
 import com.reservas.exception.NotFoundException;
 import com.reservas.exception.UnauthorizedException;
 import com.reservas.repository.*;
+import com.reservas.entity.enums.TipoPlan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,6 +52,10 @@ class CitaServiceTest {
 
     @Mock
     private DiaLibreRepository diaLibreRepository;
+
+    // PlanLimitesService se añadió a CitaService para validar el límite mensual de citas
+    @Mock
+    private PlanLimitesService planLimitesService;
 
     @InjectMocks
     private CitaService citaService;
@@ -125,8 +130,8 @@ class CitaServiceTest {
         citaRequestMock = CitaRequest.builder()
                 .fecha(fechaCita)
                 .hora(horaCita)
-                .clienteId("cliente-123")
-                .servicioId("servicio-123")
+                .clienteId(clienteMock.getId().toString())   // UUID válido
+                .servicioId(servicioMock.getId().toString()) // UUID válido
                 .notas("Primera cita")
                 .build();
     }
@@ -138,8 +143,6 @@ class CitaServiceTest {
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
         when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.of(clienteMock));
         when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioMock));
-        when(citaRepository.findByNegocioAndFechaHoraBetween(any(), any(), any()))
-                .thenReturn(Collections.emptyList());
         when(citaRepository.save(any(Cita.class))).thenReturn(citaMock);
 
         // Act
@@ -149,8 +152,8 @@ class CitaServiceTest {
         assertNotNull(response);
         assertEquals("cita-123", response.getId());
         assertEquals("PENDIENTE", response.getEstado());
-        assertEquals("cliente-123", response.getClienteId());
-        assertEquals("servicio-123", response.getServicioId());
+        assertEquals(clienteMock.getId(), response.getClienteId());
+        assertEquals(servicioMock.getId(), response.getServicioId());
 
         verify(usuarioRepository, times(1)).findByEmail(anyString());
         verify(clienteRepository, times(1)).findById(any(UUID.class));
@@ -245,9 +248,11 @@ class CitaServiceTest {
     @DisplayName("Crear cita - Horario no disponible")
     void testCrearCita_HorarioNoDisponible() {
         // Arrange
+        LocalDateTime fechaHoraExistente = citaRequestMock.getFechaHora();
         Cita citaExistente = Cita.builder()
                 .id("cita-existente")
-                .fechaHora(citaRequestMock.getFechaHora())
+                .fechaHora(fechaHoraExistente)
+                .fechaFin(fechaHoraExistente.plusMinutes(servicioMock.getDuracionMinutos()))
                 .estado(Cita.EstadoCita.CONFIRMADA)
                 .negocio(negocioMock)
                 .servicio(servicioMock)
@@ -256,7 +261,7 @@ class CitaServiceTest {
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
         when(clienteRepository.findById(any(UUID.class))).thenReturn(Optional.of(clienteMock));
         when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioMock));
-        when(citaRepository.findByNegocioAndFechaHoraBetween(any(), any(), any()))
+        when(citaRepository.findByNegocioAndFecha(any(), any()))
                 .thenReturn(Arrays.asList(citaExistente));
 
         // Act & Assert
@@ -364,16 +369,14 @@ class CitaServiceTest {
         CitaRequest updateRequest = CitaRequest.builder()
                 .fecha(LocalDate.of(2024, 1, 15))
                 .hora(LocalTime.of(14, 0))
-                .clienteId("cliente-123")
-                .servicioId("servicio-123")
+                .clienteId(clienteMock.getId().toString())
+                .servicioId(servicioMock.getId().toString())
                 .notas("Cita actualizada")
                 .build();
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
         when(citaRepository.findById(anyString())).thenReturn(Optional.of(citaMock));
         when(servicioRepository.findById(any(UUID.class))).thenReturn(Optional.of(servicioMock));
-        when(citaRepository.findByNegocioAndFechaHoraBetween(any(), any(), any()))
-                .thenReturn(Collections.emptyList());
         when(citaRepository.save(any(Cita.class))).thenReturn(citaMock);
 
         // Act
@@ -453,7 +456,7 @@ class CitaServiceTest {
         when(citaRepository.findByNegocioAndFecha(any(), any())).thenReturn(Collections.emptyList());
 
         // Act
-        List<LocalDateTime> horarios = citaService.obtenerHorariosDisponibles("usuario@test.com", "servicio-123", fecha);
+        List<LocalDateTime> horarios = citaService.obtenerHorariosDisponibles("usuario@test.com", servicioMock.getId().toString(), fecha);
 
         // Assert
         assertNotNull(horarios);
@@ -481,7 +484,7 @@ class CitaServiceTest {
         when(diaLibreRepository.findByNegocioAndFecha(any(), any())).thenReturn(Arrays.asList(diaLibre));
 
         // Act
-        List<LocalDateTime> horarios = citaService.obtenerHorariosDisponibles("usuario@test.com", "servicio-123", fecha);
+        List<LocalDateTime> horarios = citaService.obtenerHorariosDisponibles("usuario@test.com", servicioMock.getId().toString(), fecha);
 
         // Assert
         assertNotNull(horarios);
@@ -504,7 +507,7 @@ class CitaServiceTest {
                 .thenReturn(Collections.emptyList());
 
         // Act
-        List<LocalDateTime> horarios = citaService.obtenerHorariosDisponibles("usuario@test.com", "servicio-123", fecha);
+        List<LocalDateTime> horarios = citaService.obtenerHorariosDisponibles("usuario@test.com", servicioMock.getId().toString(), fecha);
 
         // Assert
         assertNotNull(horarios);

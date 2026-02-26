@@ -1,5 +1,6 @@
 package com.reservas.controller;
 
+import com.reservas.dto.request.ActualizarPerfilRequest;
 import com.reservas.dto.request.GoogleAuthRequest;
 import com.reservas.dto.request.LoginRequest;
 import com.reservas.dto.request.RegisterRequest;
@@ -12,13 +13,18 @@ import com.reservas.service.AuthService;
 import com.reservas.service.EmailVerificationService;
 import com.reservas.service.RateLimitService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/auth")
@@ -38,12 +44,31 @@ public class AuthController {
     @Value("${rate.limit.enabled:true}")
     private boolean rateLimitEnabled;
 
+    /** true en producción (HTTPS), false en desarrollo (HTTP) */
+    @Value("${app.cookie.secure:false}")
+    private boolean cookieSecure;
+
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<?>> register(
             @Valid @RequestBody RegisterRequest request,
-            HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+
+        // Rate limiting en registro
+        if (rateLimitEnabled) {
+            String clientIp = getClientIP(httpRequest);
+            if (!rateLimitService.tryConsume(clientIp + ":register")) {
+                log.warn("Rate limit excedido para IP: {} en endpoint /register", clientIp);
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                        .body(ApiResponse.builder().success(false)
+                                .message("Demasiados intentos. Por favor, intenta más tarde.").build());
+            }
+        }
+
         try {
             var response = authService.registrar(request, httpRequest);
+            setAuthCookie(httpResponse, response.getToken());
+            response.setToken(null); // No exponer el token en el body
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.builder()
                             .success(true)
@@ -62,7 +87,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<?>> login(
             @Valid @RequestBody LoginRequest request,
-            HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
 
         // Rate limiting por IP (solo si está habilitado)
         if (rateLimitEnabled) {
@@ -81,6 +107,8 @@ public class AuthController {
 
         try {
             LoginResponse response = authService.login(request);
+            setAuthCookie(httpResponse, response.getToken());
+            response.setToken(null); // No exponer el token en el body
             log.info("Login exitoso para usuario: {}", request.getEmail());
             return ResponseEntity.ok(ApiResponse.builder()
                     .success(true)
@@ -108,8 +136,38 @@ public class AuthController {
         return xfHeader.split(",")[0];
     }
 
+    /**
+     * Establece la cookie httpOnly con el JWT.
+     * SameSite=Strict previene CSRF sin necesidad de token adicional.
+     */
+    private void setAuthCookie(HttpServletResponse response, String token) {
+        ResponseCookie cookie = ResponseCookie.from("access_token", token)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    /**
+     * Invalida la cookie de sesión enviando una cookie vacía con maxAge=0.
+     */
+    private void clearAuthCookie(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("access_token", "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<?>> logout() {
+    public ResponseEntity<ApiResponse<?>> logout(HttpServletResponse httpResponse) {
+        clearAuthCookie(httpResponse);
         return ResponseEntity.ok(ApiResponse.builder()
                 .success(true)
                 .message("Sesión cerrada exitosamente")
@@ -151,7 +209,8 @@ public class AuthController {
     @PostMapping("/google")
     public ResponseEntity<ApiResponse<?>> googleAuth(
             @Valid @RequestBody GoogleAuthRequest request,
-            HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
 
         // Rate limiting por IP (solo si está habilitado)
         if (rateLimitEnabled) {
@@ -170,6 +229,8 @@ public class AuthController {
 
         try {
             LoginResponse response = authService.googleAuth(request, httpRequest);
+            setAuthCookie(httpResponse, response.getToken());
+            response.setToken(null); // No exponer el token en el body
             log.info("Autenticación con Google exitosa para: {}", response.getEmail());
             return ResponseEntity.ok(ApiResponse.builder()
                     .success(true)
@@ -217,10 +278,52 @@ public class AuthController {
     }
 
     /**
+     * Actualizar perfil del usuario autenticado
+     */
+    @PutMapping("/perfil")
+    public ResponseEntity<ApiResponse<?>> actualizarPerfil(@Valid @RequestBody ActualizarPerfilRequest request) {
+        try {
+            var response = authService.actualizarPerfil(request);
+            return ResponseEntity.ok(ApiResponse.builder()
+                    .success(true)
+                    .message("Perfil actualizado exitosamente")
+                    .data(response)
+                    .build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.builder()
+                            .success(false)
+                            .message(e.getMessage())
+                            .build());
+        } catch (Exception e) {
+            log.error("Error al actualizar perfil: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.builder()
+                            .success(false)
+                            .message("Error al actualizar el perfil")
+                            .build());
+        }
+    }
+
+    /**
      * Reenviar email de verificación
      */
     @PostMapping("/resend-verification")
-    public ResponseEntity<ApiResponse<?>> reenviarVerificacion(@Valid @RequestBody ReenviarEmailRequest request) {
+    public ResponseEntity<ApiResponse<?>> reenviarVerificacion(
+            @Valid @RequestBody ReenviarEmailRequest request,
+            HttpServletRequest httpRequest) {
+
+        // Rate limiting en reenvío de verificación
+        if (rateLimitEnabled) {
+            String clientIp = getClientIP(httpRequest);
+            if (!rateLimitService.tryConsume(clientIp + ":resend-verification")) {
+                log.warn("Rate limit excedido para IP: {} en endpoint /resend-verification", clientIp);
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                        .body(ApiResponse.builder().success(false)
+                                .message("Demasiados intentos. Por favor, intenta más tarde.").build());
+            }
+        }
+
         try {
             emailVerificationService.reenviarEmailVerificacion(request.getEmail());
 

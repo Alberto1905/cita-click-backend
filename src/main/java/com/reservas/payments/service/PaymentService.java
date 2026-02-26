@@ -255,22 +255,22 @@ public class PaymentService {
 
         long totalPayments = allPayments.getTotalElements();
         BigDecimal totalAmount = allPayments.stream()
-                .filter(p -> p.getStatus() == Payment.PaymentStatus.SUCCEEDED)
+                .filter(p -> p.getStatus() == Payment.PaymentStatus.SUCCESS || p.getStatus() == Payment.PaymentStatus.SUCCEEDED)
                 .map(Payment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalPlatformFees = allPayments.stream()
-                .filter(p -> p.getStatus() == Payment.PaymentStatus.SUCCEEDED)
+                .filter(p -> p.getStatus() == Payment.PaymentStatus.SUCCESS || p.getStatus() == Payment.PaymentStatus.SUCCEEDED)
                 .map(Payment::getPlatformFee)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalNetAmount = allPayments.stream()
-                .filter(p -> p.getStatus() == Payment.PaymentStatus.SUCCEEDED)
+                .filter(p -> p.getStatus() == Payment.PaymentStatus.SUCCESS || p.getStatus() == Payment.PaymentStatus.SUCCEEDED)
                 .map(Payment::getNetAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         long successfulPayments = allPayments.stream()
-                .filter(p -> p.getStatus() == Payment.PaymentStatus.SUCCEEDED)
+                .filter(p -> p.getStatus() == Payment.PaymentStatus.SUCCESS || p.getStatus() == Payment.PaymentStatus.SUCCEEDED)
                 .count();
 
         long failedPayments = allPayments.stream()

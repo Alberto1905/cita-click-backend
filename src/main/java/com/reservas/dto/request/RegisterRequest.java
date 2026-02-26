@@ -2,7 +2,7 @@ package com.reservas.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +18,10 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Contraseña es requerida")
-    @Size(min = 6, message = "Contraseña debe tener al menos 6 caracteres")
+    @Pattern(
+        regexp = "^(?=.*[A-Z])(?=.*\\d).{8,}$",
+        message = "La contraseña debe tener al menos 8 caracteres, una letra mayúscula y un número"
+    )
     private String password;
 
     @NotBlank(message = "Nombre es requerido")

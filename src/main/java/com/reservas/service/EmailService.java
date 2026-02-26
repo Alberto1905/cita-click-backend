@@ -213,21 +213,71 @@ public class EmailService {
     }
 
     /**
-     * Envía recordatorio de cita usando el template Clásico (diseño por defecto).
+     * Envía recordatorio de cita usando el template Clásico con valores por defecto.
+     * Equivale a llamar con config = null.
      */
     public boolean enviarRecordatorioCita(String destinatario, String nombreCliente, String fechaCita,
                                           String horaCita, String nombreServicio, String nombreNegocio) {
         return enviarRecordatorioCita(destinatario, nombreCliente, fechaCita, horaCita,
-                                     nombreServicio, nombreNegocio, PlantillaEmailConfig.TipoDiseno.CLASICO);
+                                     nombreServicio, nombreNegocio, (PlantillaEmailConfig) null);
     }
 
     /**
      * Envía recordatorio de cita usando el template del diseño elegido por el negocio.
-     * El HTML se carga desde src/main/resources/email-templates/ y las variables
-     * {@code {{nombreCliente}}}, {@code {{nombreServicio}}}, {@code {{fechaCita}}},
-     * {@code {{horaCita}}}, {@code {{nombreNegocio}}} son reemplazadas antes de enviar.
+     * Incluye variables de estilo y texto personalizados (colores, mensajeBienvenida, firma, infoContacto).
+     * Si config es null o está inactiva, se usan los valores por defecto del template.
      *
-     * @param diseno Diseño de la plantilla del negocio (CLASICO, MODERNO, MINIMALISTA)
+     * @param config Configuración de plantilla del negocio (puede ser null → usa defaults)
+     */
+    public boolean enviarRecordatorioCita(String destinatario, String nombreCliente, String fechaCita,
+                                          String horaCita, String nombreServicio, String nombreNegocio,
+                                          PlantillaEmailConfig config) {
+        String asunto = String.format("Recordatorio de cita - %s", nombreNegocio);
+
+        // Si el negocio tiene config activa, usarla; sino usar defaults
+        boolean usarConfig = config != null && config.isActiva();
+        PlantillaEmailConfig.TipoDiseno diseno = usarConfig && config.getDisenoBase() != null
+                ? config.getDisenoBase()
+                : PlantillaEmailConfig.TipoDiseno.CLASICO;
+
+        Map<String, String> variables = new HashMap<>();
+        // Variables de cita
+        variables.put("nombreCliente",  nombreCliente);
+        variables.put("nombreServicio", nombreServicio);
+        variables.put("fechaCita",      fechaCita);
+        variables.put("horaCita",       horaCita);
+        variables.put("nombreNegocio",  nombreNegocio);
+
+        // Variables de color (con defaults que coinciden con los colores originales del template)
+        variables.put("colorPrimario",   usarConfig && config.getColorPrimario()  != null ? config.getColorPrimario()  : "#2563eb");
+        variables.put("colorSecundario", usarConfig && config.getColorSecundario() != null ? config.getColorSecundario() : "#7c3aed");
+        variables.put("colorFondo",      usarConfig && config.getColorFondo()     != null ? config.getColorFondo()     : "#f4f4f5");
+
+        // Variables de texto personalizado
+        String mensajeBienvenida = usarConfig && config.getMensajeBienvenida() != null && !config.getMensajeBienvenida().isBlank()
+                ? config.getMensajeBienvenida()
+                : "Te recordamos que tienes una cita próxima. ¡Te esperamos con gusto!";
+        variables.put("mensajeBienvenida", mensajeBienvenida);
+
+        String firma = usarConfig && config.getFirma() != null && !config.getFirma().isBlank()
+                ? config.getFirma()
+                : nombreNegocio;
+        variables.put("firma", firma);
+
+        // infoContacto como bloque HTML pre-armado (vacío si no hay info)
+        String infoContacto = usarConfig && config.getInfoContacto() != null ? config.getInfoContacto() : "";
+        String infoContactoHtml = infoContacto.isBlank() ? ""
+                : "<p style=\"color:#6b7280;font-size:12px;margin:0 0 6px 0;\">" + infoContacto + "</p>";
+        variables.put("infoContactoHtml", infoContactoHtml);
+
+        return enviarConTemplate(destinatario, asunto, resolverNombreTemplate(diseno), variables);
+    }
+
+    /**
+     * Envía recordatorio usando un diseño específico (con colores y textos por defecto).
+     * Mantiene compatibilidad con código que pasa el diseño explícitamente.
+     *
+     * @param diseno Diseño de la plantilla (CLASICO, MODERNO, MINIMALISTA)
      */
     public boolean enviarRecordatorioCita(String destinatario, String nombreCliente, String fechaCita,
                                           String horaCita, String nombreServicio, String nombreNegocio,
@@ -235,11 +285,18 @@ public class EmailService {
         String asunto = String.format("Recordatorio de cita - %s", nombreNegocio);
 
         Map<String, String> variables = new HashMap<>();
-        variables.put("nombreCliente",  nombreCliente);
-        variables.put("nombreServicio", nombreServicio);
-        variables.put("fechaCita",      fechaCita);
-        variables.put("horaCita",       horaCita);
-        variables.put("nombreNegocio",  nombreNegocio);
+        variables.put("nombreCliente",     nombreCliente);
+        variables.put("nombreServicio",    nombreServicio);
+        variables.put("fechaCita",         fechaCita);
+        variables.put("horaCita",          horaCita);
+        variables.put("nombreNegocio",     nombreNegocio);
+        // Valores por defecto de estilo (sin configuración personalizada)
+        variables.put("colorPrimario",     "#2563eb");
+        variables.put("colorSecundario",   "#7c3aed");
+        variables.put("colorFondo",        "#f4f4f5");
+        variables.put("mensajeBienvenida", "Te recordamos que tienes una cita próxima. ¡Te esperamos con gusto!");
+        variables.put("firma",             nombreNegocio);
+        variables.put("infoContactoHtml",  "");
 
         return enviarConTemplate(destinatario, asunto, resolverNombreTemplate(diseno), variables);
     }

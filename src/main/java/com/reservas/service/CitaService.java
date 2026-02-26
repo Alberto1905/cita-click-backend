@@ -8,6 +8,7 @@ import com.reservas.entity.Cita;
 import com.reservas.entity.CitaServicio;
 import com.reservas.entity.Cliente;
 import com.reservas.entity.Negocio;
+import com.reservas.entity.PlantillaEmailConfig;
 import com.reservas.entity.Servicio;
 import com.reservas.entity.Usuario;
 import com.reservas.exception.BadRequestException;
@@ -20,6 +21,7 @@ import com.reservas.repository.CitaServicioRepository;
 import com.reservas.repository.ClienteRepository;
 import com.reservas.repository.DiaLibreRepository;
 import com.reservas.repository.HorarioTrabajoRepository;
+import com.reservas.repository.PlantillaEmailConfigRepository;
 import com.reservas.repository.ServicioRepository;
 import com.reservas.repository.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -72,6 +74,9 @@ public class CitaService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private PlantillaEmailConfigRepository plantillaEmailConfigRepository;
 
     @Transactional
     public CitaResponse crearCita(String email, CitaRequest request) {
@@ -700,14 +705,20 @@ public class CitaService {
         // Formatear hora (ej: "10:00 AM")
         String horaCita = formatearHora(cita.getFechaHora());
 
-        // Enviar recordatorio por email
+        // Cargar configuración de plantilla email del negocio (colores, textos, diseño)
+        PlantillaEmailConfig emailConfig = plantillaEmailConfigRepository
+                .findByNegocio(cita.getNegocio())
+                .orElse(null);
+
+        // Enviar recordatorio por email con configuración personalizada del negocio
         boolean enviado = emailService.enviarRecordatorioCita(
                 cliente.getEmail(),
                 nombreCliente,
                 fechaCita,
                 horaCita,
                 nombreServicio,
-                nombreNegocio
+                nombreNegocio,
+                emailConfig
         );
 
         if (enviado) {

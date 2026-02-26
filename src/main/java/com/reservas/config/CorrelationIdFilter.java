@@ -64,7 +64,8 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
             try {
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
-                    MDC.put(MDC_USER_ID, auth.getName());
+                    // Email enmascarado para evitar exposición en logs
+                    MDC.put(MDC_USER_ID, maskEmail(auth.getName()));
                 }
             } catch (Exception ignored) {
                 // No interrumpir el flujo si no se puede obtener el usuario
@@ -84,5 +85,12 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
             // CRÍTICO: limpiar MDC para evitar fugas entre requests en el thread pool
             MDC.clear();
         }
+    }
+
+    private String maskEmail(String email) {
+        if (email == null) return "unknown";
+        int at = email.indexOf('@');
+        if (at <= 2) return "***" + (at >= 0 ? email.substring(at) : "");
+        return email.substring(0, 3) + "***" + email.substring(at);
     }
 }

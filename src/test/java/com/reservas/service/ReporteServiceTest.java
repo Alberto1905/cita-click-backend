@@ -381,7 +381,7 @@ class ReporteServiceTest {
                 .apellidoPaterno("Test")
                 .negocio(negocioMock)
                 .build();
-        // Note: createdAt is managed by JPA Auditing, can't be set manually in builder
+        clienteNuevo.setCreatedAt(LocalDateTime.now());
 
         Cliente clienteAntiguo = Cliente.builder()
                 .id(UUID.randomUUID())
@@ -389,6 +389,7 @@ class ReporteServiceTest {
                 .apellidoPaterno("Test")
                 .negocio(negocioMock)
                 .build();
+        clienteAntiguo.setCreatedAt(LocalDateTime.now().minusDays(30));
 
         when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuarioMock));
         when(citaRepository.findByNegocioAndFechaHoraBetween(any(), any(), any()))

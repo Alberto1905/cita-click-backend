@@ -22,4 +22,5 @@ public class UserResponse {
     private UUID negocioId;
     private String nombreNegocio;
     private boolean activo;
+    private String authProvider;
 }

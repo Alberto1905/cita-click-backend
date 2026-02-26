@@ -6,22 +6,22 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Recordatorio de Cita - Cita Click</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:{{colorFondo}};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
 
   <!-- Outer wrapper -->
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-         style="background-color:#f4f4f5;padding:48px 16px;">
+         style="background-color:{{colorFondo}};padding:48px 16px;">
     <tr>
       <td align="center">
 
         <!-- Card container -->
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
                style="max-width:600px;width:100%;background-color:#ffffff;border-radius:20px;overflow:hidden;
-                      box-shadow:0 10px 40px rgba(124,58,237,0.12);">
+                      box-shadow:0 10px 40px rgba(0,0,0,0.12);">
 
           <!-- ── HEADER ── -->
           <tr>
-            <td style="background:linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);padding:40px 40px 32px 40px;">
+            <td style="background:linear-gradient(135deg,{{colorPrimario}} 0%,{{colorSecundario}} 100%);padding:40px 40px 32px 40px;">
 
               <!-- Brand row -->
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
@@ -60,7 +60,7 @@
                 Hola, <strong style="color:#111827;">{{nombreCliente}}</strong> 👋
               </p>
               <p style="color:#6b7280;font-size:15px;line-height:1.75;margin:0 0 28px 0;">
-                Te recordamos que tienes una cita próxima. ¡Te esperamos con gusto!
+                {{mensajeBienvenida}}
               </p>
             </td>
           </tr>
@@ -75,9 +75,9 @@
 
                 <!-- Header row -->
                 <tr>
-                  <td colspan="2" style="background:linear-gradient(135deg,#f5f3ff 0%,#eff6ff 100%);
+                  <td colspan="2" style="background-color:#f5f3ff;
                                          padding:14px 20px;border-bottom:1px solid #e5e7eb;">
-                    <span style="color:#7c3aed;font-size:12px;font-weight:700;
+                    <span style="color:{{colorSecundario}};font-size:12px;font-weight:700;
                                  letter-spacing:1px;text-transform:uppercase;">
                       📋 Detalles de tu cita
                     </span>
@@ -151,13 +151,14 @@
 
           <!-- ── FOOTER ── -->
           <tr>
-            <td style="background:linear-gradient(135deg,#f5f3ff 0%,#eff6ff 100%);
+            <td style="background-color:#f5f3ff;
                        border-top:1px solid #e5e7eb;padding:24px 44px;text-align:center;">
-              <p style="color:#7c3aed;font-size:13px;font-weight:600;margin:0 0 6px 0;">
-                {{nombreNegocio}}
+              <p style="color:{{colorSecundario}};font-size:13px;font-weight:600;margin:0 0 6px 0;">
+                {{firma}}
               </p>
+              {{infoContactoHtml}}
               <p style="color:#9ca3af;font-size:12px;margin:0 0 6px 0;">
-                Gestionado con <strong style="color:#7c3aed;">Cita Click</strong>
+                Gestionado con <strong style="color:{{colorSecundario}};">Cita Click</strong>
               </p>
               <p style="color:#d1d5db;font-size:11px;margin:0;">
                 © 2025 Cita Click · Este es un mensaje automático

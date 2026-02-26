@@ -192,6 +192,7 @@ class SuscripcionServiceTest {
     @DisplayName("Debe lanzar excepción cuando cuenta está suspendida")
     void debeLanzarExcepcion_cuandoCuentaSuspendida() {
         // Arrange
+        negocioMock.setEnPeriodoPrueba(false);
         negocioMock.setEstadoPago("suspendido");
 
         when(usuarioRepository.findByEmail(usuarioMock.getEmail()))
@@ -210,6 +211,7 @@ class SuscripcionServiceTest {
     @DisplayName("Debe lanzar excepción cuando pago está pendiente")
     void debeLanzarExcepcion_cuandoPagoPendiente() {
         // Arrange
+        negocioMock.setEnPeriodoPrueba(false);
         negocioMock.setEstadoPago("pendiente_pago");
 
         when(usuarioRepository.findByEmail(usuarioMock.getEmail()))
@@ -275,13 +277,13 @@ class SuscripcionServiceTest {
     @DisplayName("Debe enviar notificaciones de fin de prueba")
     void debeEnviarNotificacionFinPrueba() {
         // Arrange
-        negocioMock.setFechaFinPrueba(LocalDateTime.now().plusDays(1));
+        negocioMock.setFechaFinPrueba(LocalDateTime.now().plusHours(25));
         negocioMock.setNotificacionPruebaEnviada(false);
 
         when(negocioRepository.findAll()).thenReturn(Arrays.asList(negocioMock));
         when(negocioRepository.save(any(Negocio.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        doNothing().when(emailService).enviarEmail(anyString(), anyString(), anyString());
+        when(emailService.enviarEmail(anyString(), anyString(), anyString())).thenReturn(true);
 
         // Act
         suscripcionService.enviarNotificaciones();
@@ -309,7 +311,7 @@ class SuscripcionServiceTest {
         when(negocioRepository.findAll()).thenReturn(Arrays.asList(negocioMock));
         when(negocioRepository.save(any(Negocio.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        doNothing().when(emailService).enviarEmail(anyString(), anyString(), anyString());
+        when(emailService.enviarEmail(anyString(), anyString(), anyString())).thenReturn(true);
 
         // Act
         suscripcionService.enviarNotificaciones();
@@ -362,7 +364,7 @@ class SuscripcionServiceTest {
         when(negocioRepository.findAll()).thenReturn(Arrays.asList(negocioMock));
         when(negocioRepository.save(any(Negocio.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        doNothing().when(emailService).enviarEmail(anyString(), anyString(), anyString());
+        when(emailService.enviarEmail(anyString(), anyString(), anyString())).thenReturn(true);
 
         // Act
         suscripcionService.verificarSuscripcionesVencidas();
@@ -402,11 +404,11 @@ class SuscripcionServiceTest {
     @DisplayName("Debe manejar errores al enviar notificaciones sin interrumpir el proceso")
     void debeManejarErrores_alEnviarNotificaciones() {
         // Arrange
-        negocioMock.setFechaFinPrueba(LocalDateTime.now().plusDays(1));
+        negocioMock.setFechaFinPrueba(LocalDateTime.now().plusHours(25));
         negocioMock.setNotificacionPruebaEnviada(false);
 
         when(negocioRepository.findAll()).thenReturn(Arrays.asList(negocioMock));
-        doThrow(new RuntimeException("Error de red"))
+        lenient().doThrow(new RuntimeException("Error de red"))
                 .when(emailService).enviarEmail(anyString(), anyString(), anyString());
 
         // Act & Assert

@@ -39,25 +39,37 @@ public class EmailVerificationService {
     }
 
     /**
-     * Envía un email de verificación al usuario usando Resend
+     * Guarda el token de verificación en el usuario y envía el email.
+     * El guardado del token siempre se intenta; el envío del email nunca bloquea
+     * el registro aunque falle (el usuario puede solicitar un reenvío).
      */
     @Transactional
     public void enviarEmailVerificacion(Usuario usuario) {
-        // Generar token
+        // 1. Guardar token (dentro de la TX del registro)
         String token = generateVerificationToken();
-
-        // Guardar token en el usuario
         usuario.setTokenVerificacion(token);
         usuario.setTokenVerificacionExpira(LocalDateTime.now().plusHours(TOKEN_VALIDITY_HOURS));
         usuarioRepository.save(usuario);
+        log.info("[Email Verificación] Token generado y guardado para: {}", usuario.getEmail());
 
-        // Construir URL de verificación
-        String verificationUrl = frontendUrl + "/verify-email?token=" + token;
+        // 2. Enviar email — cualquier fallo aquí no debe deshacer el registro
+        try {
+            String verificationUrl = frontendUrl + "/verify-email?token=" + token;
+            boolean enviado = emailService.enviarEmailVerificacion(
+                    usuario.getEmail(), usuario.getNombre(), verificationUrl);
 
-        // Enviar email usando Resend
-        emailService.enviarEmailVerificacion(usuario.getEmail(), usuario.getNombre(), verificationUrl);
-
-        log.info("[Email Verificación] Email de verificación enviado a: {}", usuario.getEmail());
+            if (enviado) {
+                log.info("[Email Verificación] Email enviado correctamente a: {}", usuario.getEmail());
+            } else {
+                log.warn("[Email Verificación] No se pudo enviar el email a: {}. " +
+                         "El token está guardado; el usuario puede solicitar reenvío.", usuario.getEmail());
+            }
+        } catch (Exception e) {
+            // Capturamos cualquier excepción inesperada para que NO marque la TX
+            // como rollback-only y así el registro del usuario siempre se complete.
+            log.error("[Email Verificación] Error inesperado enviando email a {}: {}",
+                      usuario.getEmail(), e.getMessage(), e);
+        }
     }
 
     /**

@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface NegocioRepository extends JpaRepository<Negocio, UUID> {
     Optional<Negocio> findByEmail(String email);
     boolean existsByEmail(String email);
+    Optional<Negocio> findByStripeSubscriptionId(String stripeSubscriptionId);
 }

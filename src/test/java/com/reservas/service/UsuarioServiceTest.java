@@ -392,8 +392,6 @@ class UsuarioServiceTest {
         when(usuarioRepository.findById(usuarioOwnerMock.getId()))
                 .thenReturn(Optional.of(usuarioOwnerMock));
         when(permisosService.esOwner(usuarioOwnerMock)).thenReturn(true);
-        when(usuarioRepository.findByNegocioIdAndRol(negocioId, UsuarioRol.OWNER.getCodigo()))
-                .thenReturn(Arrays.asList(usuarioOwnerMock));
 
         doNothing().when(permisosService).validarPermiso(usuarioOwnerMock, "DESACTIVAR_USUARIOS");
         doNothing().when(permisosService).validarGestionRol(usuarioOwnerMock, usuarioOwnerMock.getRol());

@@ -25,11 +25,19 @@ spring:
       max-lifetime: 1800000       # 30 min vida máxima de una conexión
 
   # ============================================================================
-  # JPA - PRODUCCIÓN (Solo validar, NO modificar schema)
+  # JPA - PRODUCCIÓN
   # ============================================================================
+  # DDL_AUTO controla cómo Hibernate gestiona el schema en la BD:
+  #   validate  → Solo valida que las tablas existen (default en prod - RECOMENDADO)
+  #   update    → Crea/modifica tablas automáticamente (usar en el PRIMER deploy con BD vacía)
+  #   create    → Destruye y recrea todo (NUNCA usar con datos reales)
+  #
+  # ⚠️ PRIMER DEPLOY con base de datos vacía:
+  #   Lanza con: DDL_AUTO=update  → Hibernate crea todas las tablas
+  #   Luego cambia a: DDL_AUTO=validate (o elimina la variable para usar el default)
   jpa:
     hibernate:
-      ddl-auto: validate  # CRÍTICO: Solo validar, nunca modificar BD en prod
+      ddl-auto: ${DDL_AUTO:validate}
     show-sql: false
     properties:
       hibernate:
@@ -152,11 +160,26 @@ rate:
 # FRONTEND URL
 # ============================================================================
 frontend:
-  url: ${FRONTEND_URL:https://app.citaclick.com.mx}
+  url: ${FRONTEND_URL:https://citaclick.com.mx}
 
 app:
   frontend:
-    url: ${FRONTEND_URL:https://app.citaclick.com.mx}
+    url: ${FRONTEND_URL:https://citaclick.com.mx}
+    # Orígenes extra de CORS separados por coma.
+    # Agrega aquí todos los dominios desde los que el frontend hace peticiones al API.
+    # Ejemplo: https://citaclick.com.mx,https://www.citaclick.com.mx,https://app.citaclick.com.mx
+    extra-origins: ${FRONTEND_EXTRA_ORIGINS:https://www.citaclick.com.mx,https://app.citaclick.com.mx}
+  cookie:
+    secure: true  # HTTPS en producción
+
+# ============================================================================
+# SPRINGDOC / SWAGGER - Deshabilitado en producción
+# ============================================================================
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 # ============================================================================
 # ACTUATOR

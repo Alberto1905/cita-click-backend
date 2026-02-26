@@ -1,8 +1,10 @@
 package com.reservas.service;
 
 import com.reservas.entity.Cita;
+import com.reservas.entity.PlantillaEmailConfig;
 import com.reservas.entity.Recordatorio;
 import com.reservas.repository.CitaRepository;
+import com.reservas.repository.PlantillaEmailConfigRepository;
 import com.reservas.repository.RecordatorioRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,9 @@ public class RecordatorioService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private PlantillaEmailConfigRepository plantillaEmailConfigRepository;
 
     /**
      * Crea recordatorios para una cita
@@ -147,13 +152,18 @@ public class RecordatorioService {
         switch (recordatorio.getTipo()) {
             case EMAIL:
                 if (cita.getCliente().getEmail() != null) {
+                    // Cargar configuración de plantilla del negocio (colores, textos, diseño)
+                    PlantillaEmailConfig emailConfig = plantillaEmailConfigRepository
+                            .findByNegocio(cita.getNegocio())
+                            .orElse(null);
                     enviado = emailService.enviarRecordatorioCita(
                             cita.getCliente().getEmail(),
                             nombreCliente,
                             fechaCita,
                             horaCita,
                             nombreServicio,
-                            nombreNegocio
+                            nombreNegocio,
+                            emailConfig
                     );
                 }
                 break;

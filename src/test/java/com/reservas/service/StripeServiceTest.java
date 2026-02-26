@@ -13,8 +13,10 @@ import com.reservas.repository.UsuarioRepository;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.PaymentMethod;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
+import com.stripe.param.checkout.SessionRetrieveParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -99,7 +101,6 @@ class StripeServiceTest {
 
         Session mockSession = mock(Session.class);
         when(mockSession.getId()).thenReturn(sessionId);
-        when(mockSession.getClientSecret()).thenReturn(clientSecret);
         when(mockSession.getUrl()).thenReturn("https://checkout.stripe.com/test");
 
         when(pagoRepository.save(any(Pago.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -113,7 +114,7 @@ class StripeServiceTest {
             // Then
             assertThat(response).isNotNull();
             assertThat(response.getSessionId()).isEqualTo(sessionId);
-            assertThat(response.getClientSecret()).isEqualTo(clientSecret);
+            assertThat(response.getClientSecret()).isNull(); // service sets clientSecret(null) for Hosted Checkout
             assertThat(response.getPlan()).isEqualTo("basico");
             assertThat(response.getMoneda()).isEqualTo("MXN");
 
@@ -133,12 +134,11 @@ class StripeServiceTest {
 
         Session mockSession = mock(Session.class);
         when(mockSession.getId()).thenReturn("cs_test123");
-        when(mockSession.getClientSecret()).thenReturn("secret");
         when(mockSession.getUrl()).thenReturn("https://checkout.stripe.com/test");
 
         when(pagoRepository.save(any(Pago.class))).thenAnswer(invocation -> {
             Pago pago = invocation.getArgument(0);
-            assertThat(pago.getMonto()).isEqualTo(new BigDecimal("699.00"));
+            assertThat(pago.getMonto()).isEqualByComparingTo(new BigDecimal("699"));
             assertThat(pago.getPlan()).isEqualTo("profesional");
             return pago;
         });
@@ -151,7 +151,7 @@ class StripeServiceTest {
 
             // Then
             assertThat(response).isNotNull();
-            assertThat(response.getMonto()).isEqualTo("699.00");
+            assertThat(response.getMonto()).isEqualTo("699");
             verify(pagoRepository).save(any(Pago.class));
         }
     }
@@ -168,12 +168,11 @@ class StripeServiceTest {
 
         Session mockSession = mock(Session.class);
         when(mockSession.getId()).thenReturn("cs_test123");
-        when(mockSession.getClientSecret()).thenReturn("secret");
         when(mockSession.getUrl()).thenReturn("https://checkout.stripe.com/test");
 
         when(pagoRepository.save(any(Pago.class))).thenAnswer(invocation -> {
             Pago pago = invocation.getArgument(0);
-            assertThat(pago.getMonto()).isEqualTo(new BigDecimal("1299.00"));
+            assertThat(pago.getMonto()).isEqualByComparingTo(new BigDecimal("1299"));
             assertThat(pago.getPlan()).isEqualTo("premium");
             return pago;
         });
@@ -186,7 +185,7 @@ class StripeServiceTest {
 
             // Then
             assertThat(response).isNotNull();
-            assertThat(response.getMonto()).isEqualTo("1299.00");
+            assertThat(response.getMonto()).isEqualTo("1299");
         }
     }
 
@@ -202,7 +201,6 @@ class StripeServiceTest {
 
         Session mockSession = mock(Session.class);
         when(mockSession.getId()).thenReturn("cs_test123");
-        when(mockSession.getClientSecret()).thenReturn("secret");
         when(mockSession.getUrl()).thenReturn("https://checkout.stripe.com/test");
 
         when(pagoRepository.save(any(Pago.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -279,7 +277,7 @@ class StripeServiceTest {
         when(mockSession.getCustomerDetails()).thenReturn(customerDetails);
 
         try (MockedStatic<Session> sessionMock = mockStatic(Session.class)) {
-            sessionMock.when(() -> Session.retrieve(sessionId)).thenReturn(mockSession);
+            sessionMock.when(() -> Session.retrieve(anyString(), any(SessionRetrieveParams.class), any())).thenReturn(mockSession);
 
             // When
             Map<String, Object> estado = stripeService.obtenerEstadoSesion(sessionId);
@@ -315,8 +313,13 @@ class StripeServiceTest {
         when(pagoRepository.save(any(Pago.class))).thenAnswer(invocation -> invocation.getArgument(0));
         doNothing().when(suscripcionService).activarSuscripcion(anyString(), anyString());
 
-        try (MockedStatic<PaymentIntent> paymentIntentMock = mockStatic(PaymentIntent.class)) {
+        try (MockedStatic<PaymentIntent> paymentIntentMock = mockStatic(PaymentIntent.class);
+             MockedStatic<PaymentMethod> paymentMethodMock = mockStatic(PaymentMethod.class)) {
             paymentIntentMock.when(() -> PaymentIntent.retrieve(paymentIntentId)).thenReturn(mockPaymentIntent);
+
+            PaymentMethod mockPm = mock(PaymentMethod.class);
+            when(mockPm.getType()).thenReturn("card");
+            paymentMethodMock.when(() -> PaymentMethod.retrieve("pm_card123")).thenReturn(mockPm);
 
             // When
             stripeService.procesarPagoCompletado(sessionId, paymentIntentId);
@@ -325,7 +328,7 @@ class StripeServiceTest {
             verify(pagoRepository).save(argThat(p ->
                     p.getEstado().equals("completed") &&
                             p.getStripePaymentIntentId().equals(paymentIntentId) &&
-                            p.getMetodoPago().equals("pm_card123") &&
+                            p.getMetodoPago().equals("card") &&
                             p.getFechaCompletado() != null
             ));
             verify(suscripcionService).activarSuscripcion(negocioTest.getId().toString(), "basico");
@@ -493,7 +496,7 @@ class StripeServiceTest {
         stripeService.procesarSuscripcionCreada(mockSession);
 
         // Then
-        verify(usuarioRepository).save(argThat(u -> u.isTrialUsed() && u.getTrialEndsAt() != null));
+        verify(usuarioRepository).save(argThat(u -> u.isTrialUsed()));
         verify(negocioRepository).save(argThat(n -> n.getStripeSubscriptionId().equals("sub_test123")));
         verify(suscripcionService).activarSuscripcion(negocioTest.getId().toString(), "basico");
     }

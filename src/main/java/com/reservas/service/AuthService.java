@@ -1,5 +1,6 @@
 package com.reservas.service;
 
+import com.reservas.dto.request.ActualizarPerfilRequest;
 import com.reservas.dto.request.GoogleAuthRequest;
 import com.reservas.dto.request.LoginRequest;
 import com.reservas.dto.request.RegisterRequest;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -55,6 +57,7 @@ public class AuthService {
     /**
      * Registra un nuevo usuario y su negocio
      */
+    @Transactional
     public LoginResponse registrar(RegisterRequest request, HttpServletRequest httpRequest) {
         // Validar que el email no exista
         if (usuarioRepository.existsByEmail(request.getEmail())) {
@@ -157,6 +160,7 @@ public class AuthService {
     /**
      * Obtener información del usuario autenticado
      */
+    @Transactional(readOnly = true)
     public UserResponse obtenerUsuarioActual() {
         // Obtener email del usuario autenticado del contexto de seguridad
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -186,6 +190,7 @@ public class AuthService {
                 .telefono(usuario.getTelefono())
                 .rol(usuario.getRol())
                 .activo(usuario.isActivo())
+                .authProvider(usuario.getAuthProvider() != null ? usuario.getAuthProvider() : "local")
                 .build();
 
         // Agregar información del negocio si está disponible
@@ -202,6 +207,7 @@ public class AuthService {
      * Si el usuario ya existe, hace login
      * Si no existe, lo registra automáticamente
      */
+    @Transactional
     public LoginResponse googleAuth(GoogleAuthRequest request, HttpServletRequest httpRequest) {
         log.debug("Iniciando autenticación con Google");
 
@@ -310,6 +316,65 @@ public class AuthService {
                 .email(usuario.getEmail())
                 .negocioId(negocio.getId().toString())
                 .build();
+    }
+
+    /**
+     * Actualizar perfil del usuario autenticado.
+     * Permite cambiar nombre, apellidos, teléfono y contraseña (opcional).
+     * Los usuarios de Google no pueden cambiar la contraseña.
+     */
+    @Transactional
+    public UserResponse actualizarPerfil(ActualizarPerfilRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (email == null || email.equals("anonymousUser")) {
+            throw new UnauthorizedException("Usuario no autenticado");
+        }
+
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new UnauthorizedException("Usuario no encontrado"));
+
+        // Actualizar campos básicos
+        usuario.setNombre(request.getNombre());
+        usuario.setApellidoPaterno(request.getApellidoPaterno());
+        usuario.setApellidoMaterno(request.getApellidoMaterno());
+        usuario.setTelefono(request.getTelefono());
+
+        // Cambio de contraseña (solo para usuarios locales)
+        if (request.getPasswordNueva() != null && !request.getPasswordNueva().isBlank()) {
+            if (usuario.getAuthProvider() != null && !usuario.getAuthProvider().equals("local")) {
+                throw new IllegalArgumentException("Los usuarios de Google no pueden cambiar la contraseña desde aquí");
+            }
+            if (request.getPasswordActual() == null || request.getPasswordActual().isBlank()) {
+                throw new IllegalArgumentException("La contraseña actual es requerida para cambiarla");
+            }
+            if (!passwordEncoder.matches(request.getPasswordActual(), usuario.getPasswordHash())) {
+                throw new IllegalArgumentException("La contraseña actual es incorrecta");
+            }
+            usuario.setPasswordHash(passwordEncoder.encode(request.getPasswordNueva()));
+        }
+
+        usuario = usuarioRepository.save(usuario);
+        log.info("Perfil actualizado para usuario: {}", email);
+
+        UserResponse response = UserResponse.builder()
+                .id(usuario.getId())
+                .nombre(usuario.getNombre())
+                .apellidoPaterno(usuario.getApellidoPaterno())
+                .apellidoMaterno(usuario.getApellidoMaterno())
+                .email(usuario.getEmail())
+                .telefono(usuario.getTelefono())
+                .rol(usuario.getRol())
+                .activo(usuario.isActivo())
+                .authProvider(usuario.getAuthProvider() != null ? usuario.getAuthProvider() : "local")
+                .build();
+
+        if (usuario.getNegocio() != null) {
+            response.setNegocioId(usuario.getNegocio().getId());
+            response.setNombreNegocio(usuario.getNegocio().getNombre());
+        }
+
+        return response;
     }
 
 }

@@ -6,11 +6,11 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Recordatorio de Cita - Cita Click</title>
 </head>
-<body style="margin:0;padding:0;background-color:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:{{colorFondo}};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
 
   <!-- Outer wrapper -->
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-         style="background-color:#fafafa;padding:48px 16px;">
+         style="background-color:{{colorFondo}};padding:48px 16px;">
     <tr>
       <td align="center">
 
@@ -21,7 +21,7 @@
 
           <!-- ── TOP ACCENT BAR ── -->
           <tr>
-            <td style="height:3px;background:linear-gradient(90deg,#2563eb 0%,#7c3aed 100%);"></td>
+            <td style="height:3px;background:linear-gradient(90deg,{{colorPrimario}} 0%,{{colorSecundario}} 100%);"></td>
           </tr>
 
           <!-- ── HEADER ── -->
@@ -31,12 +31,12 @@
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td>
-                    <span style="font-size:15px;font-weight:800;color:#7c3aed;letter-spacing:-0.3px;">
+                    <span style="font-size:15px;font-weight:800;color:{{colorSecundario}};letter-spacing:-0.3px;">
                       Cita Click
                     </span>
                   </td>
                   <td align="right">
-                    <span style="background-color:#f5f3ff;color:#7c3aed;font-size:11px;font-weight:700;
+                    <span style="background-color:#f5f3ff;color:{{colorSecundario}};font-size:11px;font-weight:700;
                                  padding:4px 12px;border-radius:50px;letter-spacing:0.5px;text-transform:uppercase;">
                       Recordatorio
                     </span>
@@ -57,8 +57,7 @@
                 Tienes una cita próxima
               </h1>
               <p style="color:#6b7280;font-size:15px;line-height:1.7;margin:0;">
-                Hola <strong style="color:#374151;">{{nombreCliente}}</strong>, te recordamos
-                tu cita en <strong style="color:#374151;">{{nombreNegocio}}</strong>.
+                Hola <strong style="color:#374151;">{{nombreCliente}}</strong>, {{mensajeBienvenida}}
               </p>
             </td>
           </tr>
@@ -104,7 +103,7 @@
                                  text-transform:uppercase;letter-spacing:0.8px;">Hora</span>
                   </td>
                   <td style="padding:16px 0;vertical-align:middle;">
-                    <span style="color:#7c3aed;font-size:22px;font-weight:800;
+                    <span style="color:{{colorSecundario}};font-size:22px;font-weight:800;
                                  letter-spacing:-0.5px;">{{horaCita}}</span>
                   </td>
                 </tr>
@@ -147,7 +146,11 @@
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td>
-                    <p style="color:#d1d5db;font-size:12px;margin:0;line-height:1.5;">
+                    <p style="color:#374151;font-size:13px;font-weight:600;margin:0 0 4px 0;">
+                      {{firma}}
+                    </p>
+                    {{infoContactoHtml}}
+                    <p style="color:#d1d5db;font-size:12px;margin:4px 0 0 0;line-height:1.5;">
                       © 2025 <strong style="color:#9ca3af;">Cita Click</strong>
                       · Este es un mensaje automático
                     </p>
@@ -162,7 +165,7 @@
 
           <!-- ── BOTTOM ACCENT LINE ── -->
           <tr>
-            <td style="height:3px;background:linear-gradient(90deg,#7c3aed 0%,#2563eb 100%);"></td>
+            <td style="height:3px;background:linear-gradient(90deg,{{colorSecundario}} 0%,{{colorPrimario}} 100%);"></td>
           </tr>
 
         </table>

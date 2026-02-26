@@ -39,7 +39,7 @@ class RateLimitServiceTest {
     @DisplayName("Debe permitir hasta 5 peticiones")
     void debePermitirHasta5Peticiones() {
         // Act & Assert
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 3; i++) {
             boolean resultado = rateLimitService.tryConsume(TEST_KEY);
             assertTrue(resultado, "La petición " + (i + 1) + " debería estar permitida");
         }
@@ -48,8 +48,8 @@ class RateLimitServiceTest {
     @Test
     @DisplayName("Debe bloquear sexta petición")
     void debeBloquearSextaPeticion() {
-        // Arrange - Consumir los 5 tokens disponibles
-        for (int i = 0; i < 5; i++) {
+        // Arrange - Consumir los 3 tokens disponibles
+        for (int i = 0; i < 3; i++) {
             rateLimitService.tryConsume(TEST_KEY);
         }
 
@@ -67,8 +67,8 @@ class RateLimitServiceTest {
         String key1 = "192.168.1.1:/api/endpoint1";
         String key2 = "192.168.1.2:/api/endpoint2";
 
-        // Act - Consumir 5 tokens del primer key
-        for (int i = 0; i < 5; i++) {
+        // Act - Consumir 3 tokens del primer key
+        for (int i = 0; i < 3; i++) {
             rateLimitService.tryConsume(key1);
         }
 
@@ -95,7 +95,7 @@ class RateLimitServiceTest {
         long tokensInicial = rateLimitService.getAvailableTokens(TEST_KEY);
 
         // Assert
-        assertEquals(5, tokensInicial);
+        assertEquals(3, tokensInicial);
     }
 
     @Test
@@ -106,14 +106,14 @@ class RateLimitServiceTest {
         long tokensRestantes = rateLimitService.getAvailableTokens(TEST_KEY);
 
         // Assert
-        assertEquals(4, tokensRestantes);
+        assertEquals(2, tokensRestantes);
     }
 
     @Test
     @DisplayName("Debe retornar cero tokens cuando se excede el límite")
     void debeRetornarCeroTokens_cuandoExcedeLimite() {
         // Arrange - Consumir todos los tokens
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 3; i++) {
             rateLimitService.tryConsume(TEST_KEY);
         }
 
@@ -143,9 +143,9 @@ class RateLimitServiceTest {
         rateLimitService.tryConsume(key3);
 
         // Assert
-        assertEquals(3, rateLimitService.getAvailableTokens(key1));
-        assertEquals(2, rateLimitService.getAvailableTokens(key2));
-        assertEquals(4, rateLimitService.getAvailableTokens(key3));
+        assertEquals(1, rateLimitService.getAvailableTokens(key1));
+        assertEquals(0, rateLimitService.getAvailableTokens(key2));
+        assertEquals(2, rateLimitService.getAvailableTokens(key3));
     }
 
     @Test
@@ -157,7 +157,7 @@ class RateLimitServiceTest {
         String keyEndpoint2 = ip + ":/api/register";
 
         // Act - Agotar límite en endpoint1
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 3; i++) {
             rateLimitService.tryConsume(keyEndpoint1);
         }
 
@@ -165,7 +165,7 @@ class RateLimitServiceTest {
         boolean resultado = rateLimitService.tryConsume(keyEndpoint2);
         assertTrue(resultado);
         assertEquals(0, rateLimitService.getAvailableTokens(keyEndpoint1));
-        assertEquals(4, rateLimitService.getAvailableTokens(keyEndpoint2));
+        assertEquals(2, rateLimitService.getAvailableTokens(keyEndpoint2));
     }
 
     @Test
@@ -176,6 +176,6 @@ class RateLimitServiceTest {
 
         // Assert
         assertNotNull(bucket);
-        assertEquals(5, bucket.getAvailableTokens());
+        assertEquals(3, bucket.getAvailableTokens());
     }
 }

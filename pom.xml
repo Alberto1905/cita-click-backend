@@ -181,6 +181,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- H2 - Base de datos en memoria para tests de integración -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- Spring AOP para anotaciones personalizadas -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -225,7 +232,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.11</version>
+				<version>0.8.12</version>
 				<executions>
 					<execution>
 						<goals>
@@ -278,6 +285,7 @@
 						--add-opens java.base/sun.nio.ch=ALL-UNNAMED
 						--add-opens java.base/sun.security.action=ALL-UNNAMED
 						-XX:+EnableDynamicAgentLoading
+						-Dnet.bytebuddy.experimental=true
 					</argLine>
 				</configuration>
 			</plugin>

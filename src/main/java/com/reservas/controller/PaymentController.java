@@ -182,6 +182,48 @@ public class PaymentController {
     }
 
     /**
+     * GET /api/v1/payments/public/{paymentId}
+     * Obtiene información básica de un pago SIN autenticación.
+     * Usado por la página de pago del cliente final (/pay/:paymentId).
+     * NO expone datos sensibles del negocio.
+     */
+    @GetMapping("/public/{paymentId}")
+    @Operation(
+        summary = "Obtener pago público",
+        description = "Retorna información básica del pago para que el cliente final pueda completar el pago"
+    )
+    public ResponseEntity<ApiResponse<Map<String, Object>>> obtenerPagoPublico(
+            @PathVariable String paymentId
+    ) {
+        log.info("[PaymentController] GET /api/v1/payments/public/{}", paymentId);
+
+        try {
+            Payment payment = paymentService.getPaymentById(paymentId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", payment.getId());
+            response.put("amount", payment.getAmount());
+            response.put("currency", payment.getCurrency());
+            response.put("description", payment.getDescription());
+            response.put("customerName", payment.getCustomerName());
+            response.put("status", payment.getStatus().toString());
+
+            return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
+                    .success(true)
+                    .message("Pago obtenido exitosamente")
+                    .data(response)
+                    .build());
+        } catch (PaymentException e) {
+            log.error("[PaymentController] Pago público no encontrado: {}", paymentId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.<Map<String, Object>>builder()
+                            .success(false)
+                            .message("Pago no encontrado")
+                            .build());
+        }
+    }
+
+    /**
      * GET /api/v1/payments/statistics
      * Obtiene estadísticas de pagos
      */

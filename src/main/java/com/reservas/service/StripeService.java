@@ -12,8 +12,12 @@ import com.reservas.repository.PagoRepository;
 import com.reservas.repository.UsuarioRepository;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Charge;
 import com.stripe.model.Customer;
+import com.stripe.model.Invoice;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.PaymentMethod;
+import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
@@ -96,14 +100,28 @@ public class StripeService {
                 throw new NotFoundException("Negocio no encontrado");
             }
 
+            // -------------------------------------------------------------------
+            // VALIDACIÓN: Bloquear si ya tiene suscripción activa
+            // Evita que un usuario cree dos suscripciones simultáneas
+            // -------------------------------------------------------------------
+            if ("activo".equals(negocio.getEstadoPago()) && negocio.getStripeSubscriptionId() != null) {
+                log.warn("[Stripe] Usuario {} intentó crear checkout con suscripción ya activa (sub: {})",
+                        emailUsuario, negocio.getStripeSubscriptionId());
+                throw new RuntimeException(
+                        "Ya tienes una suscripción activa. Puedes administrarla desde tu perfil."
+                );
+            }
+
             // Obtener o crear cliente de Stripe
             String customerId = obtenerOCrearCustomer(negocio);
 
             // Obtener el Price ID según el plan
             String priceId = getPriceIdForPlan(request.getPlan());
 
-            // Verificar si el usuario ya usó su período de prueba
-            boolean aplicarTrial = !usuario.isTrialUsed();
+            // -------------------------------------------------------------------
+            // SIN TRIAL DE STRIPE: El período gratuito de 7 días ya lo gestiona
+            // el sistema (Negocio.fechaFinPrueba). Stripe cobra inmediatamente.
+            // -------------------------------------------------------------------
 
             // Crear metadata
             Map<String, String> metadata = new HashMap<>();
@@ -111,14 +129,13 @@ public class StripeService {
             metadata.put("usuario_id", usuario.getId().toString());
             metadata.put("plan", request.getPlan());
             metadata.put("email", emailUsuario);
-            metadata.put("trial_applied", String.valueOf(aplicarTrial));
             if (request.getReferencia() != null) {
                 metadata.put("referencia", request.getReferencia());
             }
 
-            // Crear sesión de checkout para SUSCRIPCIÓN (Hosted Checkout - redirect a Stripe)
-            SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
-                    .setMode(SessionCreateParams.Mode.SUBSCRIPTION) // Suscripción recurrente
+            // Crear sesión de checkout (Hosted Checkout - redirect a Stripe, cobro inmediato)
+            SessionCreateParams params = SessionCreateParams.builder()
+                    .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
                     .setCustomer(customerId)
                     .setSuccessUrl(successUrl + "?session_id={CHECKOUT_SESSION_ID}")
                     .setCancelUrl(cancelUrl)
@@ -129,28 +146,14 @@ public class StripeService {
                                     .setQuantity(1L)
                                     .build()
                     )
-                    // TODO: Reactivar cuando se configure dirección fiscal en Stripe Dashboard
-                    // https://dashboard.stripe.com/test/settings/tax
                     .setAutomaticTax(
                             SessionCreateParams.AutomaticTax.builder()
                                     .setEnabled(false)
                                     .build()
-                    );
+                    )
+                    .build();
 
-            // Agregar trial solo si el usuario no lo ha usado antes
-            if (aplicarTrial) {
-                paramsBuilder.setSubscriptionData(
-                        SessionCreateParams.SubscriptionData.builder()
-                                .setTrialPeriodDays(7L) // 7 días de prueba
-                                .putMetadata("trial_granted", "true")
-                                .build()
-                );
-                log.info("[Stripe] Aplicando período de prueba de 7 días para usuario: {}", emailUsuario);
-            } else {
-                log.info("[Stripe] Usuario ya usó su período de prueba, cobrando inmediatamente: {}", emailUsuario);
-            }
-
-            SessionCreateParams params = paramsBuilder.build();
+            log.info("[Stripe] Checkout con cobro inmediato (sin trial) para: {}", emailUsuario);
 
             Session session = Session.create(params);
 
@@ -291,15 +294,26 @@ public class StripeService {
             pago.setPeriodoInicio(ahora);
             pago.setPeriodoFin(ahora.plusDays(30));
 
-            // Método de pago
+            // Método de pago — recuperar el tipo ("card", "oxxo", "spei", etc.) no el ID
             if (paymentIntent.getPaymentMethod() != null) {
-                pago.setMetodoPago(paymentIntent.getPaymentMethod());
+                try {
+                    PaymentMethod pm = PaymentMethod.retrieve(paymentIntent.getPaymentMethod());
+                    pago.setMetodoPago(pm.getType());
+                } catch (Exception e) {
+                    log.warn("[Stripe] No se pudo obtener tipo de método de pago: {}", e.getMessage());
+                }
             }
 
-            // URL de factura - La obtendremos del PaymentIntent si está disponible
-            // En versiones recientes de Stripe, se puede obtener desde la sesión o el customer
-            if (paymentIntent.getReceiptEmail() != null) {
-                log.info("[Stripe] Receipt email: {}", paymentIntent.getReceiptEmail());
+            // URL de recibo (factura) desde el Charge
+            if (paymentIntent.getLatestCharge() != null) {
+                try {
+                    Charge charge = Charge.retrieve(paymentIntent.getLatestCharge());
+                    if (charge.getReceiptUrl() != null) {
+                        pago.setFacturaUrl(charge.getReceiptUrl());
+                    }
+                } catch (Exception e) {
+                    log.warn("[Stripe] No se pudo obtener URL de recibo: {}", e.getMessage());
+                }
             }
 
             pagoRepository.save(pago);
@@ -337,9 +351,10 @@ public class StripeService {
     }
 
     /**
-     * Obtiene el historial de pagos de un negocio
+     * Obtiene el historial de pagos de un negocio.
+     * Auto-reconcilia pagos pendientes con Stripe para reflejar el estado real.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public List<PagoResponse> obtenerHistorialPagos(String emailUsuario) {
         log.info("[Stripe] Obteniendo historial de pagos para: {}", emailUsuario);
 
@@ -348,6 +363,22 @@ public class StripeService {
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
         List<Pago> pagos = pagoRepository.findByNegocioOrderByFechaCreacionDesc(usuario.getNegocio());
+
+        // ----------------------------------------------------------------
+        // AUTO-RECONCILIACIÓN: sincronizar pagos pendientes con Stripe.
+        // Los pagos creados antes del fix del webhook (o cuando el webhook
+        // no llegó) quedan como "pending" indefinidamente en la DB.
+        // Al cargar el historial, los sincronizamos en tiempo real.
+        // ----------------------------------------------------------------
+        long pendientes = pagos.stream().filter(Pago::isPendiente).count();
+        if (pendientes > 0) {
+            log.info("[Stripe] Encontrados {} pago(s) pendiente(s) — sincronizando con Stripe...", pendientes);
+            pagos.stream()
+                    .filter(p -> p.isPendiente() && p.getStripeCheckoutSessionId() != null)
+                    .forEach(this::sincronizarPagoPendiente);
+            // Recargar lista para reflejar los cambios guardados
+            pagos = pagoRepository.findByNegocioOrderByFechaCreacionDesc(usuario.getNegocio());
+        }
 
         return pagos.stream()
                 .map(this::mapToPagoResponse)
@@ -383,6 +414,92 @@ public class StripeService {
     }
 
     // ==================== Métodos auxiliares ====================
+
+    /**
+     * Actualiza un Pago pendiente con los datos reales de una suscripción de Stripe:
+     * estado, período de facturación, método de pago y URL de factura.
+     * Maneja cualquier excepción internamente para no interrumpir el flujo principal.
+     */
+    private void actualizarPagoDesdeSubscripcion(Pago pago, String subscriptionId) {
+        try {
+            Subscription stripeSubscription = Subscription.retrieve(subscriptionId);
+
+            pago.setEstado("completed");
+            pago.setFechaCompletado(LocalDateTime.now());
+
+            // Período de facturación real de Stripe
+            pago.setPeriodoInicio(LocalDateTime.ofInstant(
+                    Instant.ofEpochSecond(stripeSubscription.getCurrentPeriodStart()),
+                    ZoneId.systemDefault()));
+            pago.setPeriodoFin(LocalDateTime.ofInstant(
+                    Instant.ofEpochSecond(stripeSubscription.getCurrentPeriodEnd()),
+                    ZoneId.systemDefault()));
+
+            // Obtener datos de factura y método de pago desde la última Invoice
+            String latestInvoiceId = stripeSubscription.getLatestInvoice();
+            if (latestInvoiceId != null) {
+                Invoice invoice = Invoice.retrieve(latestInvoiceId);
+
+                if (invoice.getHostedInvoiceUrl() != null) {
+                    pago.setFacturaUrl(invoice.getHostedInvoiceUrl());
+                }
+
+                String invoicePaymentIntentId = invoice.getPaymentIntent();
+                if (invoicePaymentIntentId != null) {
+                    PaymentIntent pi = PaymentIntent.retrieve(invoicePaymentIntentId);
+                    // Solo asignar si el campo está vacío (evita violación de restricción UNIQUE)
+                    if (pago.getStripePaymentIntentId() == null) {
+                        pago.setStripePaymentIntentId(pi.getId());
+                    }
+                    if (pi.getPaymentMethod() != null) {
+                        PaymentMethod pm = PaymentMethod.retrieve(pi.getPaymentMethod());
+                        pago.setMetodoPago(pm.getType());
+                    }
+                    // Recibo como respaldo si no hay hostedInvoiceUrl
+                    if (pi.getLatestCharge() != null && pago.getFacturaUrl() == null) {
+                        Charge charge = Charge.retrieve(pi.getLatestCharge());
+                        if (charge.getReceiptUrl() != null) {
+                            pago.setFacturaUrl(charge.getReceiptUrl());
+                        }
+                    }
+                }
+            }
+
+            pagoRepository.save(pago);
+            log.info("[Stripe] ✅ Pago {} sincronizado → completado (sub: {})", pago.getId(), subscriptionId);
+
+        } catch (Exception e) {
+            log.warn("[Stripe] No se pudo sincronizar pago {} con suscripción {}: {}",
+                    pago.getId(), subscriptionId, e.getMessage());
+        }
+    }
+
+    /**
+     * Intenta sincronizar un Pago pendiente contra Stripe.
+     * Primero usa el subscriptionId del Negocio (ruta rápida, sin llamada extra a Stripe).
+     * Si no existe, recupera la sesión de checkout para obtener el subscriptionId.
+     */
+    private void sincronizarPagoPendiente(Pago pago) {
+        try {
+            // Ruta rápida: el Negocio ya tiene el subscription ID guardado
+            String subscriptionId = pago.getNegocio().getStripeSubscriptionId();
+            if (subscriptionId != null) {
+                actualizarPagoDesdeSubscripcion(pago, subscriptionId);
+                return;
+            }
+
+            // Respaldo: recuperar sesión de Stripe para obtener el subscription ID
+            Session session = Session.retrieve(pago.getStripeCheckoutSessionId());
+            if ("complete".equals(session.getStatus())
+                    && "subscription".equals(session.getMode())
+                    && session.getSubscription() != null) {
+                actualizarPagoDesdeSubscripcion(pago, session.getSubscription());
+            }
+
+        } catch (Exception e) {
+            log.warn("[Stripe] No se pudo sincronizar pago pendiente {}: {}", pago.getId(), e.getMessage());
+        }
+    }
 
     /**
      * Obtiene o crea un cliente de Stripe para el negocio
@@ -456,23 +573,20 @@ public class StripeService {
             String usuarioId = session.getMetadata().get("usuario_id");
             String negocioId = session.getMetadata().get("negocio_id");
             String plan = session.getMetadata().get("plan");
-            String trialApplied = session.getMetadata().get("trial_applied");
 
             if (usuarioId == null || negocioId == null) {
                 log.error("[Stripe] Metadata incompleta en la sesión");
                 return;
             }
 
-            // Obtener usuario
+            // Obtener usuario y marcar que ya tiene suscripción (para tracking)
             Usuario usuario = usuarioRepository.findById(UUID.fromString(usuarioId))
                     .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
-            // Marcar trial como usado si se aplicó
-            if ("true".equals(trialApplied) && !usuario.isTrialUsed()) {
-                usuario.setTrialUsed(true);
-                usuario.setTrialEndsAt(LocalDateTime.now().plusDays(7));
+            if (!usuario.isTrialUsed()) {
+                usuario.setTrialUsed(true); // Marca que el usuario ya se suscribió (consumió su trial gratuito)
                 usuarioRepository.save(usuario);
-                log.info("[Stripe] Trial marcado como usado para usuario: {}", usuario.getEmail());
+                log.info("[Stripe] Usuario marcado como suscrito: {}", usuario.getEmail());
             }
 
             // Obtener el negocio
@@ -487,6 +601,16 @@ public class StripeService {
             negocioRepository.save(negocio);
 
             log.info("[Stripe] ✅ Suscripción activada para negocio: {} - Plan: {}", negocio.getNombre(), plan);
+
+            // ----------------------------------------------------------------
+            // ACTUALIZAR el registro Pago de "pending" → "completed"
+            // Para checkout en modo subscription, procesarPagoCompletado nunca
+            // se llama, por lo que el Pago queda como pending indefinidamente.
+            // ----------------------------------------------------------------
+            Pago pago = pagoRepository.findByStripeCheckoutSessionId(session.getId()).orElse(null);
+            if (pago != null && !pago.isPagado() && session.getSubscription() != null) {
+                actualizarPagoDesdeSubscripcion(pago, session.getSubscription());
+            }
 
         } catch (Exception e) {
             log.error("[Stripe] Error procesando suscripción creada", e);

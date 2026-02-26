@@ -4,14 +4,13 @@ import com.reservas.dto.CambiarRolRequest;
 import com.reservas.dto.InvitarUsuarioRequest;
 import com.reservas.dto.UsuarioDTO;
 import com.reservas.dto.response.ApiResponse;
-import com.reservas.entity.Usuario;
-import com.reservas.security.JwtProvider;
 import com.reservas.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,9 +28,6 @@ public class UsuariosController {
     @Autowired
     private UsuarioService usuarioService;
 
-    @Autowired
-    private JwtProvider tokenProvider;
-
     /**
      * POST /api/usuarios/invitar
      * Invita a un nuevo usuario al negocio
@@ -40,14 +36,14 @@ public class UsuariosController {
     @PostMapping("/invitar")
     public ResponseEntity<ApiResponse<UsuarioDTO>> invitarUsuario(
             @RequestBody @Valid InvitarUsuarioRequest request,
-            @RequestHeader("Authorization") String token) {
+            Authentication authentication) {
 
-        log.info(" Solicitud para invitar usuario: {}", request.getEmail());
+        log.info("✉️ Solicitud para invitar usuario: {}", request.getEmail());
 
-        String email = tokenProvider.getUsernameFromToken(token.replace("Bearer ", ""));
+        String email = authentication.getName();
         UsuarioDTO usuarioDTO = usuarioService.invitarUsuario(request, email);
 
-        log.info(" Usuario invitado exitosamente: {}", usuarioDTO.getEmail());
+        log.info("✅ Usuario invitado exitosamente: {}", usuarioDTO.getEmail());
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.<UsuarioDTO>builder()
@@ -63,15 +59,14 @@ public class UsuariosController {
      * OWNER ve todos, ADMIN ve empleados/recepcionistas, otros solo se ven a sí mismos
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UsuarioDTO>>> listarUsuarios(
-            @RequestHeader("Authorization") String token) {
+    public ResponseEntity<ApiResponse<List<UsuarioDTO>>> listarUsuarios(Authentication authentication) {
 
         log.info("📋 Solicitud para listar usuarios");
 
-        String email = tokenProvider.getUsernameFromToken(token.replace("Bearer ", ""));
+        String email = authentication.getName();
         List<UsuarioDTO> usuarios = usuarioService.listarUsuariosPorNegocio(email);
 
-        log.info(" Usuarios listados: {}", usuarios.size());
+        log.info("✅ Usuarios listados: {}", usuarios.size());
 
         return ResponseEntity.ok(ApiResponse.<List<UsuarioDTO>>builder()
                 .success(true)
@@ -88,14 +83,14 @@ public class UsuariosController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UsuarioDTO>> obtenerUsuario(
             @PathVariable String id,
-            @RequestHeader("Authorization") String token) {
+            Authentication authentication) {
 
         log.info("🔍 Solicitud para obtener usuario: {}", id);
 
-        String email = tokenProvider.getUsernameFromToken(token.replace("Bearer ", ""));
+        String email = authentication.getName();
         UsuarioDTO usuario = usuarioService.obtenerUsuarioPorId(UUID.fromString(id), email);
 
-        log.info(" Usuario obtenido: {}", usuario.getEmail());
+        log.info("✅ Usuario obtenido: {}", usuario.getEmail());
 
         return ResponseEntity.ok(ApiResponse.<UsuarioDTO>builder()
                 .success(true)
@@ -113,14 +108,14 @@ public class UsuariosController {
     public ResponseEntity<ApiResponse<UsuarioDTO>> cambiarRol(
             @PathVariable String id,
             @RequestBody @Valid CambiarRolRequest request,
-            @RequestHeader("Authorization") String token) {
+            Authentication authentication) {
 
-        log.info(" Solicitud para cambiar rol del usuario: {} a {}", id, request.getRol());
+        log.info("🔄 Solicitud para cambiar rol del usuario: {} a {}", id, request.getRol());
 
-        String email = tokenProvider.getUsernameFromToken(token.replace("Bearer ", ""));
+        String email = authentication.getName();
         UsuarioDTO usuario = usuarioService.cambiarRol(UUID.fromString(id), request, email);
 
-        log.info(" Rol cambiado exitosamente: {} -> {}", usuario.getEmail(), usuario.getRol());
+        log.info("✅ Rol cambiado exitosamente: {} -> {}", usuario.getEmail(), usuario.getRol());
 
         return ResponseEntity.ok(ApiResponse.<UsuarioDTO>builder()
                 .success(true)
@@ -138,14 +133,14 @@ public class UsuariosController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> desactivarUsuario(
             @PathVariable String id,
-            @RequestHeader("Authorization") String token) {
+            Authentication authentication) {
 
         log.info("🗑️ Solicitud para desactivar usuario: {}", id);
 
-        String email = tokenProvider.getUsernameFromToken(token.replace("Bearer ", ""));
+        String email = authentication.getName();
         usuarioService.desactivarUsuario(UUID.fromString(id), email);
 
-        log.info(" Usuario desactivado exitosamente: {}", id);
+        log.info("✅ Usuario desactivado exitosamente: {}", id);
 
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .success(true)
@@ -161,14 +156,14 @@ public class UsuariosController {
     @PutMapping("/{id}/activar")
     public ResponseEntity<ApiResponse<UsuarioDTO>> activarUsuario(
             @PathVariable String id,
-            @RequestHeader("Authorization") String token) {
+            Authentication authentication) {
 
         log.info("♻️ Solicitud para reactivar usuario: {}", id);
 
-        String email = tokenProvider.getUsernameFromToken(token.replace("Bearer ", ""));
+        String email = authentication.getName();
         UsuarioDTO usuario = usuarioService.activarUsuario(UUID.fromString(id), email);
 
-        log.info(" Usuario reactivado exitosamente: {}", usuario.getEmail());
+        log.info("✅ Usuario reactivado exitosamente: {}", usuario.getEmail());
 
         return ResponseEntity.ok(ApiResponse.<UsuarioDTO>builder()
                 .success(true)

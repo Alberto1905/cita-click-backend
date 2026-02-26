@@ -2,6 +2,7 @@ package com.reservas.service;
 
 import com.reservas.entity.*;
 import com.reservas.repository.CitaRepository;
+import com.reservas.repository.PlantillaEmailConfigRepository;
 import com.reservas.repository.RecordatorioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +33,9 @@ class RecordatorioServiceTest {
 
     @Mock
     private CitaRepository citaRepository;
+
+    @Mock
+    private PlantillaEmailConfigRepository plantillaEmailConfigRepository;
 
     @Mock
     private SmsService smsService;
@@ -167,7 +172,7 @@ class RecordatorioServiceTest {
         when(recordatorioRepository.findByEnviadoFalse())
                 .thenReturn(Arrays.asList(recordatorioEmail));
         when(emailService.enviarRecordatorioCita(anyString(), anyString(), anyString(),
-                anyString(), anyString(), anyString())).thenReturn(true);
+                anyString(), anyString(), anyString(), nullable(PlantillaEmailConfig.class))).thenReturn(true);
         when(recordatorioRepository.save(any(Recordatorio.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -177,7 +182,7 @@ class RecordatorioServiceTest {
         // Assert
         verify(recordatorioRepository).findByEnviadoFalse();
         verify(emailService).enviarRecordatorioCita(anyString(), anyString(),
-                anyString(), anyString(), anyString(), anyString());
+                anyString(), anyString(), anyString(), anyString(), nullable(PlantillaEmailConfig.class));
         verify(recordatorioRepository).save(argThat(r -> r.isEnviado()));
     }
 
@@ -203,7 +208,7 @@ class RecordatorioServiceTest {
 
         // Assert
         verify(emailService, never()).enviarRecordatorioCita(
-                anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+                anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), nullable(PlantillaEmailConfig.class));
     }
 
     @Test
@@ -222,7 +227,7 @@ class RecordatorioServiceTest {
         when(recordatorioRepository.findByEnviadoFalse())
                 .thenReturn(Arrays.asList(recordatorioEmail));
         when(emailService.enviarRecordatorioCita(anyString(), anyString(),
-                anyString(), anyString(), anyString(), anyString()))
+                anyString(), anyString(), anyString(), anyString(), nullable(PlantillaEmailConfig.class)))
                 .thenThrow(new RuntimeException("Error de red"));
 
         // Act & Assert - No debe lanzar excepción
@@ -245,7 +250,7 @@ class RecordatorioServiceTest {
         when(recordatorioRepository.findByEnviadoFalse())
                 .thenReturn(Arrays.asList(recordatorioEmail));
         when(emailService.enviarRecordatorioCita(anyString(), anyString(),
-                anyString(), anyString(), anyString(), anyString())).thenReturn(false);
+                anyString(), anyString(), anyString(), anyString(), nullable(PlantillaEmailConfig.class))).thenReturn(false);
 
         // Act
         recordatorioService.procesarRecordatoriosPendientes();
@@ -288,7 +293,7 @@ class RecordatorioServiceTest {
         when(recordatorioRepository.findByEnviadoFalse())
                 .thenReturn(Arrays.asList(rec1, rec2));
         when(emailService.enviarRecordatorioCita(anyString(), anyString(),
-                anyString(), anyString(), anyString(), anyString())).thenReturn(true);
+                anyString(), anyString(), anyString(), anyString(), nullable(PlantillaEmailConfig.class))).thenReturn(true);
         when(recordatorioRepository.save(any(Recordatorio.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -297,7 +302,7 @@ class RecordatorioServiceTest {
 
         // Assert
         verify(emailService, times(2)).enviarRecordatorioCita(
-                anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+                anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), nullable(PlantillaEmailConfig.class));
         verify(recordatorioRepository, times(2)).save(any(Recordatorio.class));
     }
 
@@ -311,6 +316,6 @@ class RecordatorioServiceTest {
         // Act & Assert
         assertDoesNotThrow(() -> recordatorioService.procesarRecordatoriosPendientes());
         verify(emailService, never()).enviarRecordatorioCita(
-                anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+                anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), nullable(PlantillaEmailConfig.class));
     }
 }

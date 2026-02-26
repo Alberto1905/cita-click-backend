@@ -3,6 +3,7 @@ package com.reservas.security;
 import com.reservas.config.CorrelationIdFilter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
@@ -51,9 +52,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                // Registrar el usuario en MDC para que todos los logs del request
-                // subsiguientes (servicios, repositorios) lleven su identidad
-                MDC.put(CorrelationIdFilter.MDC_USER_ID, username);
+                // Registrar el usuario en MDC (con email enmascarado por privacidad)
+                MDC.put(CorrelationIdFilter.MDC_USER_ID, maskEmail(username));
             }
         } catch (Exception ex) {
             logger.error("No se pudo establecer la autenticación del usuario", ex);
@@ -62,11 +62,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * Extrae el JWT primero de la cookie httpOnly, luego del header Authorization.
+     * La cookie es la vía preferida (más segura); el header queda como fallback
+     * para clientes API externos o mobile.
+     */
     private String extractJwtFromRequest(HttpServletRequest request) {
+        // 1. Buscar en cookie httpOnly (prioritario)
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("access_token".equals(cookie.getName())) {
+                    String val = cookie.getValue();
+                    if (val != null && !val.isBlank()) return val;
+                }
+            }
+        }
+        // 2. Fallback: Authorization header (clientes API / mobile)
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
         return null;
+    }
+
+    /** Enmascara el email para logs: usuario@dominio → usu***@dominio */
+    private String maskEmail(String email) {
+        if (email == null) return "unknown";
+        int at = email.indexOf('@');
+        if (at <= 2) return "***" + (at >= 0 ? email.substring(at) : "");
+        return email.substring(0, 3) + "***" + email.substring(at);
     }
 }

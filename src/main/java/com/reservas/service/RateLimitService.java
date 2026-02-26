@@ -18,17 +18,17 @@ public class RateLimitService {
 
     /**
      * Obtener bucket para rate limiting
-     * Configuración: 5 intentos cada 1 minuto
+     * Configuración: 3 intentos cada 5 minutos
      */
     public Bucket resolveBucket(String key) {
         return cache.computeIfAbsent(key, k -> createNewBucket());
     }
 
     /**
-     * Crear nuevo bucket con límite de 5 peticiones por minuto
+     * Crear nuevo bucket con límite de 3 peticiones cada 5 minutos
      */
     private Bucket createNewBucket() {
-        Bandwidth limit = Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(1)));
+        Bandwidth limit = Bandwidth.classic(3, Refill.intervally(3, Duration.ofMinutes(5)));
         return Bucket.builder()
                 .addLimit(limit)
                 .build();

@@ -4,7 +4,9 @@ import com.reservas.billing.service.SubscriptionService;
 import com.reservas.payments.service.ConnectAccountService;
 import com.reservas.payments.service.PaymentService;
 import com.reservas.service.StripeService;
+import com.reservas.service.SuscripcionService;
 import com.stripe.exception.SignatureVerificationException;
+import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
@@ -15,6 +17,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * Controller para recibir webhooks de Stripe
@@ -31,6 +37,7 @@ public class StripeWebhookController {
     private final PaymentService paymentService;
     private final ConnectAccountService connectAccountService;
     private final SubscriptionService subscriptionService;
+    private final SuscripcionService suscripcionService;
 
     @Value("${stripe.webhook.secret}")
     private String webhookSecret;
@@ -235,7 +242,34 @@ public class StripeWebhookController {
 
         if (invoice != null) {
             log.info("Factura pagada: {}", invoice.getId());
+
+            // 1. Actualizar estado en StripeSubscription entity (billing layer)
             subscriptionService.handleInvoicePaid(invoice.getId());
+
+            // 2. Sincronizar fechaProximoCobro real de Stripe en la entidad Negocio
+            //    Esto garantiza que la fecha de cobro sea exactamente la que Stripe usó,
+            //    y no una fecha calculada manualmente (+30 días).
+            String stripeSubscriptionId = invoice.getSubscription();
+            if (stripeSubscriptionId != null) {
+                try {
+                    // Obtener la suscripción de Stripe para leer currentPeriodEnd actualizado
+                    com.stripe.model.Subscription stripeSubscription =
+                            com.stripe.model.Subscription.retrieve(stripeSubscriptionId);
+
+                    LocalDateTime fechaProximoCobro = LocalDateTime.ofInstant(
+                            Instant.ofEpochSecond(stripeSubscription.getCurrentPeriodEnd()),
+                            ZoneId.systemDefault()
+                    );
+
+                    suscripcionService.renovarSuscripcion(stripeSubscriptionId, fechaProximoCobro);
+
+                    log.info("[Webhook] Renovación sincronizada - subscription: {} → próximo cobro: {}",
+                            stripeSubscriptionId, fechaProximoCobro);
+
+                } catch (StripeException e) {
+                    log.error("[Webhook] Error consultando suscripción en Stripe: {}", stripeSubscriptionId, e);
+                }
+            }
         }
     }
 

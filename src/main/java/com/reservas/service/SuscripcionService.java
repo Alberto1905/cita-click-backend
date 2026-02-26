@@ -245,6 +245,36 @@ public class SuscripcionService {
         log.info("[Suscripción]  Suscripción activada para: {} - Plan: {}", negocio.getNombre(), plan);
     }
 
+    /**
+     * Renueva la fecha de próximo cobro cuando Stripe confirma el pago de una factura.
+     * Se llama desde el webhook invoice.paid en cada ciclo de facturación.
+     *
+     * Recibe la fecha real de Stripe (current_period_end de la suscripción)
+     * y resetea la bandera de notificación para que el aviso de 5 días
+     * vuelva a enviarse en el próximo ciclo.
+     */
+    @Transactional
+    public void renovarSuscripcion(String stripeSubscriptionId, LocalDateTime fechaProximoCobro) {
+        Negocio negocio = negocioRepository.findByStripeSubscriptionId(stripeSubscriptionId)
+                .orElse(null);
+
+        if (negocio == null) {
+            log.warn("[Renovación] No se encontró negocio para subscription: {}", stripeSubscriptionId);
+            return;
+        }
+
+        // Solo actualizar si la suscripción ya está activa (no para el primer pago,
+        // que ya lo maneja procesarSuscripcionCreada)
+        if ("activo".equals(negocio.getEstadoPago())) {
+            negocio.setFechaProximoCobro(fechaProximoCobro);
+            negocio.setNotificacionVencimientoEnviada(false); // Resetear para el próximo ciclo
+            negocio.setCuentaActiva(true); // Por si estaba vencida y ya pagó
+            negocioRepository.save(negocio);
+            log.info("[Renovación] ✅ Suscripción renovada: {} - Próximo cobro: {}",
+                    negocio.getNombre(), fechaProximoCobro);
+        }
+    }
+
     // Métodos privados de notificación
 
     private void enviarNotificacionFinPrueba(Negocio negocio) {

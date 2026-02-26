@@ -43,6 +43,9 @@ class ServicioServiceTest {
     @Mock
     private NegocioRepository negocioRepository;
 
+    @Mock
+    private PlanLimitesService planLimitesService;
+
     @InjectMocks
     private ServicioService servicioService;
 
@@ -106,7 +109,7 @@ class ServicioServiceTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals("servicio-123", response.getId());
+        assertEquals(servicioMock.getId(), response.getId());
         assertEquals("Corte de Cabello", response.getNombre());
         assertEquals(new BigDecimal("150.00"), response.getPrecio());
         assertEquals(30, response.getDuracionMinutos());
@@ -265,7 +268,7 @@ class ServicioServiceTest {
 
         // Act & Assert
         assertThrows(UnauthorizedException.class, () -> {
-            servicioService.obtenerServicio("usuario@test.com", "servicio-123");
+            servicioService.obtenerServicio("usuario@test.com", servicioOtroNegocio.getId().toString());
         });
     }
 
@@ -286,7 +289,7 @@ class ServicioServiceTest {
         when(servicioRepository.save(any(Servicio.class))).thenReturn(servicioMock);
 
         // Act
-        ServicioResponse response = servicioService.actualizarServicio("usuario@test.com", "servicio-123", updateRequest);
+        ServicioResponse response = servicioService.actualizarServicio("usuario@test.com", servicioMock.getId().toString(), updateRequest);
 
         // Assert
         assertNotNull(response);
@@ -302,7 +305,7 @@ class ServicioServiceTest {
         when(servicioRepository.save(any(Servicio.class))).thenReturn(servicioMock);
 
         // Act
-        servicioService.eliminarServicio("usuario@test.com", "servicio-123");
+        servicioService.eliminarServicio("usuario@test.com", servicioMock.getId().toString());
 
         // Assert
         verify(servicioRepository, times(1)).save(any(Servicio.class));
@@ -318,7 +321,7 @@ class ServicioServiceTest {
 
         // Act & Assert
         assertThrows(NotFoundException.class, () -> {
-            servicioService.eliminarServicio("usuario@test.com", "servicio-inexistente");
+            servicioService.eliminarServicio("usuario@test.com", UUID.randomUUID().toString());
         });
 
         verify(servicioRepository, never()).save(any(Servicio.class));

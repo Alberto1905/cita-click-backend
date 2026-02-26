@@ -89,7 +89,7 @@ class NegocioServiceTest {
     @DisplayName("ObtenerNegocioDelUsuario - Debe retornar negocio del usuario")
     void testObtenerNegocioDelUsuario_Success() {
         // Arrange
-        when(usuarioRepository.findByEmail("usuario@example.com")).thenReturn(Optional.of(usuarioMock));
+        when(usuarioRepository.findByEmailWithNegocio("usuario@example.com")).thenReturn(Optional.of(usuarioMock));
 
         // Act
         NegocioResponse response = negocioService.obtenerNegocioDelUsuario("usuario@example.com");
@@ -99,15 +99,15 @@ class NegocioServiceTest {
         assertEquals("Mi Salón", response.getNombre());
         assertEquals("negocio@example.com", response.getEmail());
         assertEquals("salon", response.getTipo());
-        assertEquals("professional", response.getPlan());
-        verify(usuarioRepository).findByEmail("usuario@example.com");
+        assertEquals("profesional", response.getPlan());
+        verify(usuarioRepository).findByEmailWithNegocio("usuario@example.com");
     }
 
     @Test
     @DisplayName("ObtenerNegocioDelUsuario - Debe lanzar excepción si usuario no existe")
     void testObtenerNegocioDelUsuario_UserNotFound() {
         // Arrange
-        when(usuarioRepository.findByEmail("noexiste@example.com")).thenReturn(Optional.empty());
+        when(usuarioRepository.findByEmailWithNegocio("noexiste@example.com")).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(UnauthorizedException.class,
@@ -124,7 +124,7 @@ class NegocioServiceTest {
         request.setTelefono("9876543210");
         request.setCiudad("Guadalajara");
 
-        when(usuarioRepository.findByEmail("usuario@example.com")).thenReturn(Optional.of(usuarioMock));
+        when(usuarioRepository.findByEmailWithNegocio("usuario@example.com")).thenReturn(Optional.of(usuarioMock));
         when(negocioRepository.save(any(Negocio.class))).thenReturn(negocioMock);
 
         // Act
@@ -132,7 +132,7 @@ class NegocioServiceTest {
 
         // Assert
         assertNotNull(response);
-        verify(usuarioRepository).findByEmail("usuario@example.com");
+        verify(usuarioRepository).findByEmailWithNegocio("usuario@example.com");
         verify(negocioRepository).save(negocioMock);
     }
 
@@ -141,7 +141,7 @@ class NegocioServiceTest {
     void testObtenerHorarios_Success() {
         // Arrange
         List<HorarioTrabajo> horarios = Arrays.asList(horarioMock);
-        when(usuarioRepository.findByEmail("usuario@example.com")).thenReturn(Optional.of(usuarioMock));
+        when(usuarioRepository.findByEmailWithNegocio("usuario@example.com")).thenReturn(Optional.of(usuarioMock));
         when(horarioTrabajoRepository.findByNegocio(negocioMock)).thenReturn(horarios);
 
         // Act

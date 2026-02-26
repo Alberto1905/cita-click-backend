@@ -8,6 +8,7 @@ import com.reservas.entity.Usuario;
 import com.reservas.exception.BadRequestException;
 import com.reservas.exception.NotFoundException;
 import com.reservas.exception.UnauthorizedException;
+import com.reservas.repository.CitaRepository;
 import com.reservas.repository.ClienteRepository;
 import com.reservas.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ClienteService - Pruebas Unitarias")
 class ClienteServiceTest {
+
+    @Mock
+    private CitaRepository citaRepository;
 
     @Mock
     private ClienteRepository clienteRepository;
