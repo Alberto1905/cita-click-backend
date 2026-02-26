@@ -65,7 +65,9 @@
     </springProfile>
 
     <!-- ================================================================
-         PRODUCCIÓN
+         PRODUCCIÓN (contenedor / App Platform)
+         Solo CONSOLE → App Platform captura stdout/stderr automáticamente.
+         Los logs de archivo no aplican en contenedores efímeros.
          ================================================================ -->
     <springProfile name="prod">
 
@@ -76,30 +78,14 @@
             </encoder>
         </appender>
 
-        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>/var/log/citaclick/app.log</file>
-            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-                <fileNamePattern>/var/log/citaclick/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-                <maxFileSize>50MB</maxFileSize>
-                <maxHistory>60</maxHistory>
-                <totalSizeCap>2GB</totalSizeCap>
-            </rollingPolicy>
-            <encoder>
-                <pattern>${LOG_PATTERN_FILE}</pattern>
-                <charset>UTF-8</charset>
-            </encoder>
-        </appender>
-
         <!-- En producción solo WARNING y superiores de frameworks externos -->
         <root level="WARN">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="FILE"/>
         </root>
 
         <!-- Nuestro código: INFO en producción para capturar eventos de negocio -->
         <logger name="com.reservas" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="FILE"/>
         </logger>
 
         <!-- Silenciar completamente SQL y warnings rutinarios de Hibernate en producción -->
