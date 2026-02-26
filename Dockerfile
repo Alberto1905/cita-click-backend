@@ -41,8 +41,11 @@ RUN addgroup -S spring && adduser -S spring -G spring
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar JAR desde stage de build
-COPY --from=build /app/target/*.jar app.jar
+# Copiar JAR desde stage de build (nombre exacto para evitar copiar también el plain JAR)
+COPY --from=build /app/target/citaclick-backend-1.0.0.jar app.jar
+
+# Instalar curl para el healthcheck
+RUN apk add --no-cache curl
 
 # Cambiar ownership del JAR
 RUN chown spring:spring app.jar
@@ -56,9 +59,9 @@ EXPOSE 8080
 # Configurar JVM para contenedores
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/auth/test || exit 1
+# Health check (usa curl con actuator/health — más fiable que wget en Alpine JRE)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
+  CMD curl -f http://localhost:8080/api/actuator/health || exit 1
 
 # Comando de inicio
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
