@@ -47,8 +47,8 @@ public class PlanLimitesService {
                     .maxUsuarios(1)
                     .maxClientes(50)
                     .maxCitasMes(100)
-                    .maxServicios(10)
-                    .emailRecordatoriosHabilitado(false) // Sin recordatorios por email
+                    .maxServicios(5)
+                    .emailRecordatoriosHabilitado(false)
                     .smsWhatsappHabilitado(false)
                     .reportesAvanzadosHabilitado(false)
                     .personalizacionEmailHabilitado(false)
@@ -62,14 +62,14 @@ public class PlanLimitesService {
         if (!planLimitesRepository.existsByTipoPlan(TipoPlan.PROFESIONAL)) {
             PlanLimites profesional = PlanLimites.builder()
                     .tipoPlan(TipoPlan.PROFESIONAL)
-                    .maxUsuarios(5)
+                    .maxUsuarios(3)
                     .maxClientes(100)
-                    .maxCitasMes(500)
-                    .maxServicios(30)
-                    .emailRecordatoriosHabilitado(true) // CON recordatorios por email
-                    .smsWhatsappHabilitado(false) // Disponible Q2 2026
-                    .reportesAvanzadosHabilitado(false) // Solo Premium
-                    .personalizacionEmailHabilitado(false) // Solo Premium
+                    .maxCitasMes(200)
+                    .maxServicios(10)
+                    .emailRecordatoriosHabilitado(true) // 200 envíos/mes
+                    .smsWhatsappHabilitado(false)
+                    .reportesAvanzadosHabilitado(true)
+                    .personalizacionEmailHabilitado(false)
                     .soportePrioritario(false)
                     .build();
             planLimitesRepository.save(profesional);
@@ -80,14 +80,14 @@ public class PlanLimitesService {
         if (!planLimitesRepository.existsByTipoPlan(TipoPlan.PREMIUM)) {
             PlanLimites premium = PlanLimites.builder()
                     .tipoPlan(TipoPlan.PREMIUM)
-                    .maxUsuarios(10) // Ilimitado
-                    .maxClientes(-1) // Ilimitado
-                    .maxCitasMes(-1) // Ilimitado
+                    .maxUsuarios(10)
+                    .maxClientes(-1)  // Ilimitado
+                    .maxCitasMes(-1)  // Ilimitado
                     .maxServicios(-1) // Ilimitado
-                    .emailRecordatoriosHabilitado(true) // CON recordatorios por email
-                    .smsWhatsappHabilitado(false) // Disponible Q2 2026
-                    .reportesAvanzadosHabilitado(true) // CON reportes avanzados
-                    .personalizacionEmailHabilitado(true) // CON personalización de emails
+                    .emailRecordatoriosHabilitado(true) // Envíos ilimitados
+                    .smsWhatsappHabilitado(false)
+                    .reportesAvanzadosHabilitado(true)
+                    .personalizacionEmailHabilitado(true)
                     .soportePrioritario(true)
                     .build();
             planLimitesRepository.save(premium);

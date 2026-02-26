@@ -130,12 +130,17 @@ public class StripeController {
                         "nombre", "Básico",
                         "precio", 299,
                         "moneda", "MXN",
-                        "descripcion", "Plan básico para pequeños negocios",
+                        "descripcion", "Para freelancers y autónomos",
                         "caracteristicas", List.of(
-                                "Hasta 100 citas/mes",
                                 "1 usuario",
-                                "Calendario básico",
-                                "Recordatorios por email"
+                                "Hasta 50 clientes",
+                                "Hasta 100 citas/mes",
+                                "Hasta 5 servicios",
+                                "Gestión de citas y clientes",
+                                "Dashboard con métricas básicas",
+                                "Calendario visual",
+                                "Horarios de trabajo",
+                                "Disponibilidad automática"
                         )
                 ),
                 Map.of(
@@ -143,13 +148,18 @@ public class StripeController {
                         "nombre", "Profesional",
                         "precio", 699,
                         "moneda", "MXN",
-                        "descripcion", "Para negocios en crecimiento",
+                        "descripcion", "Para pequeños negocios en crecimiento",
                         "caracteristicas", List.of(
-                                "Hasta 500 citas/mes",
-                                "5 usuarios",
-                                "Recordatorios SMS",
-                                "Reportes avanzados",
-                                "Calendario compartido"
+                                "Todo lo del Plan Básico",
+                                "Hasta 3 usuarios con roles",
+                                "Hasta 100 clientes",
+                                "Hasta 200 citas/mes",
+                                "Hasta 10 servicios",
+                                "Citas recurrentes",
+                                "Perfil 360 del cliente",
+                                "Recordatorios automáticos (200 emails/mes)",
+                                "Reportes avanzados con exportación PDF/Excel",
+                                "Gestión de usuarios y permisos"
                         ),
                         "popular", true
                 ),
@@ -158,13 +168,18 @@ public class StripeController {
                         "nombre", "Premium",
                         "precio", 1299,
                         "moneda", "MXN",
-                        "descripcion", "Solución completa para empresas",
+                        "descripcion", "Para empresas y cadenas",
                         "caracteristicas", List.of(
-                                "Citas ilimitadas",
-                                "Usuarios ilimitados",
-                                "Reportes avanzados",
+                                "Todo lo del Plan Profesional",
+                                "Hasta 10 usuarios",
+                                "Clientes ILIMITADOS",
+                                "Citas ILIMITADAS",
+                                "Servicios ILIMITADOS",
+                                "Recordatorios automáticos (emails ilimitados)",
+                                "Pagos por servicios (Stripe Connect)",
+                                "Gestión avanzada de permisos",
                                 "Multi-sucursal",
-                                "Soporte prioritario"
+                                "Soporte prioritario 24/7"
                         )
                 )
         );

@@ -31,10 +31,10 @@ INSERT INTO tbl_plan_limites (
 ) VALUES (
     gen_random_uuid(),
     'BASICO',
-    2,              -- 2 usuarios (dueño + 1 empleado)
+    1,              -- 1 usuario
     50,             -- 50 clientes
     100,            -- 100 citas/mes
-    10,             -- 10 servicios
+    5,              -- 5 servicios
     false,          -- Sin recordatorios por email
     false,          -- Sin WhatsApp/SMS
     false,          -- Sin reportes avanzados
@@ -68,13 +68,13 @@ INSERT INTO tbl_plan_limites (
 ) VALUES (
     gen_random_uuid(),
     'PROFESIONAL',
-    5,              -- 5 usuarios
-    300,            -- 300 clientes
-    500,            -- 500 citas/mes
-    30,             -- 30 servicios
-    true,           -- CON recordatorios por email
-    false,          -- Sin WhatsApp/SMS (Q2 2026)
-    false,          -- Sin reportes avanzados (solo Premium)
+    3,              -- 3 usuarios con roles
+    100,            -- 100 clientes
+    200,            -- 200 citas/mes
+    10,             -- 10 servicios
+    true,           -- CON recordatorios por email (200 envíos/mes)
+    false,          -- Sin WhatsApp/SMS
+    true,           -- CON reportes avanzados PDF/Excel
     false,          -- Sin personalización de plantillas (solo Premium)
     false           -- Sin soporte prioritario
 )
@@ -105,15 +105,15 @@ INSERT INTO tbl_plan_limites (
 ) VALUES (
     gen_random_uuid(),
     'PREMIUM',
-    999999,         -- Ilimitado (representado como número alto)
-    999999,         -- Ilimitado
-    999999,         -- Ilimitado
-    999999,         -- Ilimitado
-    true,           -- CON recordatorios por email
-    false,          -- WhatsApp/SMS disponible Q2 2026 (aún no activo)
+    10,             -- Hasta 10 usuarios
+    -1,             -- Clientes ILIMITADOS
+    -1,             -- Citas ILIMITADAS
+    -1,             -- Servicios ILIMITADOS
+    true,           -- CON recordatorios por email (envíos ilimitados)
+    false,          -- Sin WhatsApp/SMS
     true,           -- CON reportes avanzados
     true,           -- CON personalización de plantillas de email
-    true            -- CON soporte prioritario
+    true            -- CON soporte prioritario 24/7
 )
 ON CONFLICT (tipo_plan) DO UPDATE SET
     max_usuarios = EXCLUDED.max_usuarios,
