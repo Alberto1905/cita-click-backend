@@ -20,7 +20,6 @@ import java.util.UUID;
 @Entity
 @Table(
     name = "tbl_usuarios",
-    schema = "ccdiad",
     indexes = {
         @Index(name = "idx_usuario_email", columnList = "email"),
         @Index(name = "idx_usuario_negocio_id", columnList = "negocio_id"),

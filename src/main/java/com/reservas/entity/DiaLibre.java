@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tbl_dias_libres", schema = "ccdiad")
+@Table(name = "tbl_dias_libres")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

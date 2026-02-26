@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
  * 6. Webhooks actualizan el estado
  */
 @Entity
-@Table(name = "tbl_stripe_subscriptions", schema = "ccdiad", indexes = {
+@Table(name = "tbl_stripe_subscriptions", indexes = {
     @Index(name = "idx_stripe_subscriptions_subscription_id", columnList = "subscription_id"),
     @Index(name = "idx_stripe_subscriptions_usuario_id", columnList = "usuario_id"),
     @Index(name = "idx_stripe_subscriptions_status", columnList = "status"),

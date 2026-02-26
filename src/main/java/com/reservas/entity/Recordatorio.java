@@ -10,7 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tbl_recordatorios", schema = "ccdiad")
+@Table(name = "tbl_recordatorios")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
  * - charges_enabled debe ser true para poder recibir pagos
  */
 @Entity
-@Table(name = "tbl_stripe_connected_accounts", schema = "ccdiad")
+@Table(name = "tbl_stripe_connected_accounts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

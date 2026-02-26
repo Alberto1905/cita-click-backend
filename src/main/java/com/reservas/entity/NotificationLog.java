@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
  * - Los webhooks actualizan el estado (delivered, read, bounced, etc.)
  */
 @Entity
-@Table(name = "tbl_notification_logs", schema = "ccdiad", indexes = {
+@Table(name = "tbl_notification_logs", indexes = {
     @Index(name = "idx_notification_logs_provider_msg_id", columnList = "provider_message_id"),
     @Index(name = "idx_notification_logs_usuario_id", columnList = "usuario_id"),
     @Index(name = "idx_notification_logs_channel", columnList = "channel"),

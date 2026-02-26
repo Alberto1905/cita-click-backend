@@ -12,7 +12,7 @@ import java.util.UUID;
  */
 @Data
 @Entity
-@Table(name = "tbl_pagos", schema = "ccdiad")
+@Table(name = "tbl_pagos")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

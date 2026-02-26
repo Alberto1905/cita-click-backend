@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 @Data
 @Entity
-@Table(name = "tbl_citas", schema = "ccdiad")
+@Table(name = "tbl_citas")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @Entity
-@Table(name = "tbl_cita_servicios", schema = "ccdiad")
+@Table(name = "tbl_cita_servicios")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

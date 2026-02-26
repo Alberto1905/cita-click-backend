@@ -41,7 +41,7 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        default_schema: ccdiap
+        default_schema: ${DB_SCHEMA:ccdiap}
         format_sql: false
         jdbc:
           time_zone: America/Mexico_City

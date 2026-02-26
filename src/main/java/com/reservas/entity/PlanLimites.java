@@ -20,7 +20,6 @@ import java.util.UUID;
 @Entity
 @Table(
     name = "tbl_plan_limites",
-    schema = "ccdiad",
     indexes = {
         @Index(name = "idx_plan_limites_tipo_plan", columnList = "tipo_plan")
     },

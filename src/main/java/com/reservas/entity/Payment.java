@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
  * 5. Dinero va a cuenta conectada del usuario (menos comisión plataforma)
  */
 @Entity
-@Table(name = "tbl_payments", schema = "ccdiad", indexes = {
+@Table(name = "tbl_payments", indexes = {
     @Index(name = "idx_payment_intent_id", columnList = "payment_intent_id"),
     @Index(name = "idx_payments_usuario_id", columnList = "usuario_id"),
     @Index(name = "idx_payments_cita_id", columnList = "cita_id"),

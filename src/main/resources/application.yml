@@ -9,9 +9,9 @@ spring:
   # DATABASE CONFIGURATION
   # ============================================================================
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://34.29.36.27:5432/db-cita-click-dev?currentSchema=ccdiad}
+    url: ${DATABASE_URL:jdbc:postgresql://34.29.36.27:5432/db-cita-click-dev?currentSchema=ccdiad&sslmode=disable}
     username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD}
+    password: ${DB_PASSWORD:<c9eTj=TG4h%I)Q|}
     driver-class-name: org.postgresql.Driver
     hikari:
       pool-name: CitaClickPool
@@ -50,8 +50,8 @@ spring:
     properties:
       hibernate:
 
-        # Schema por defecto
-        default_schema: ccdiad
+        # Schema por defecto (ccdiad=dev, ccdiap=prod)
+        default_schema: ${DB_SCHEMA:ccdiad}
 
         # NO formatear SQL por defecto (performance)
         format_sql: false
@@ -98,7 +98,7 @@ logging:
 # ============================================================================
 jwt:
   # Secret debe tener mínimo 512 bits (64 caracteres) para HS512
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:1aebff24e5e9403c0ce48178963c7323e5cfd3857876f5c943ad7785f34c4b21bc4b59821634795a64f6fa7dacd462fd1491181a462993223cd4c93e60e52bc3}
   expiration: 604800000      # 7 días en milisegundos
   refresh-expiration: 2592000000  # 30 días en milisegundos
 
@@ -107,7 +107,7 @@ jwt:
 # ============================================================================
 google:
   client:
-    id: ${GOOGLE_CLIENT_ID}
+    id: ${GOOGLE_CLIENT_ID:959341914970-esbnod0d1mhg4u1m8cae5q0g8knepnmv.apps.googleusercontent.com}
 
 # ============================================================================
 # STRIPE CONFIGURATION
@@ -115,13 +115,13 @@ google:
 stripe:
   # Clave secreta de Stripe (usada por diferentes servicios)
   secret:
-    key: ${STRIPE_SECRET_KEY}
+    key: ${STRIPE_SECRET_KEY:}
 
   api:
-    key: ${STRIPE_SECRET_KEY}
+    key: ${STRIPE_API_KEY:}
 
   webhook:
-    secret: ${STRIPE_WEBHOOK_SECRET}
+    secret: ${STRIPE_WEBHOOK_SECRET:}
 
   success:
     url: ${FRONTEND_URL:http://localhost:5174}/payment/success
@@ -134,7 +134,6 @@ stripe:
     basico: ${STRIPE_PRICE_BASICO:price_1Sxa1bCJJfBmj7w4e7MTljm6}
     profesional: ${STRIPE_PRICE_PROFESIONAL:price_1Sxa2HCJJfBmj7w48rjQIY2N}
     premium: ${STRIPE_PRICE_PREMIUM:price_1Sxa2zCJJfBmj7w4aqqXGc68}
-
 # ============================================================================
 # TWILIO CONFIGURATION (SMS y WhatsApp)
 # ============================================================================
@@ -152,19 +151,19 @@ twilio:
     from: ${TWILIO_WHATSAPP_NUMBER:}
     number: ${TWILIO_WHATSAPP_NUMBER:}
 
+
 # ============================================================================
 # RESEND CONFIGURATION (Email)
 # ============================================================================
 resend:
   api:
-    key: ${RESEND_API_KEY:}
+    key: ${RESEND_API_KEY:re_4pi5pRB6_DpjwV6nQ4T3VRXd4aMJnjxq4}
 
   from:
     email: ${RESEND_FROM_EMAIL:info@citaclick.com.mx}
     name: ${RESEND_FROM_NAME:Cita Click}
 
-  # IDs de referencia de los templates en Resend Dashboard (solo documentación).
-  # El servicio carga los HTML desde src/main/resources/email-templates/ y los envía con el campo "html".
+  # Template IDs creados en Resend Dashboard (resend.com/emails/templates)
   templates:
     verificacion-correo:      ${RESEND_TEMPLATE_VERIFICACION:verificacin-correo-electrnico}
     recordatorio-clasico:     ${RESEND_TEMPLATE_RECORDATORIO_CLASICO:recordatorio-clasico}
@@ -200,6 +199,8 @@ frontend:
 app:
   frontend:
     url: ${FRONTEND_URL:http://localhost:5174}
+  cookie:
+    secure: false  # false en dev (HTTP). En producción usar app.cookie.secure=true
 
 # ============================================================================
 # ACTUATOR / MONITORING

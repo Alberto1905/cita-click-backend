@@ -20,7 +20,6 @@ import java.util.UUID;
 @Entity
 @Table(
     name = "tbl_horarios_trabajo",
-    schema = "ccdiad",
     indexes = {
         @Index(name = "idx_horario_trabajo_negocio_id", columnList = "negocio_id"),
         @Index(name = "idx_horario_trabajo_dia_semana", columnList = "dia_semana"),
