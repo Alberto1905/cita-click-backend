@@ -166,11 +166,10 @@ app:
   frontend:
     url: ${FRONTEND_URL:https://citaclick.com.mx}
     # Orígenes extra de CORS separados por coma.
-    # Agrega aquí todos los dominios desde los que el frontend hace peticiones al API.
-    # Ejemplo: https://citaclick.com.mx,https://www.citaclick.com.mx,https://app.citaclick.com.mx
     extra-origins: ${FRONTEND_EXTRA_ORIGINS:https://www.citaclick.com.mx,https://app.citaclick.com.mx}
   cookie:
-    secure: true  # HTTPS en producción
+    secure: true        # HTTPS en producción
+    same-site: None     # Requerido: frontend y backend en subdominios distintos de ondigitalocean.app (cross-site)
 
 # ============================================================================
 # SPRINGDOC / SWAGGER - Deshabilitado en producción

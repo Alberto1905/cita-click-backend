@@ -1,0 +1,174 @@
+# ============================================================================
+# CONFIGURACIÓN DE DESARROLLO LOCAL - CITA CLICK
+# ============================================================================
+# Activar con: SPRING_PROFILES_ACTIVE=dev
+# O con Maven: ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+# ============================================================================
+
+spring:
+  application:
+    name: citaclick-api-dev
+
+  # ============================================================================
+  # BASE DE DATOS - BD de desarrollo en Digital Ocean
+  # Schema: ccdiad (cita-click-dev)
+  # ============================================================================
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://db-citaclick-do-user-31752426-0.j.db.ondigitalocean.com:25060/defaultdb?currentSchema=ccdiad&sslmode=require}
+    username: ${DB_USER:doadmin}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: CitaClickDevPool
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # ============================================================================
+  # JPA / HIBERNATE
+  # ============================================================================
+  jpa:
+    hibernate:
+      # update: crea/modifica tablas automáticamente (OK en dev)
+      # validate: solo valida schema (usar cuando la BD ya esté estable)
+      ddl-auto: ${DDL_AUTO:update}
+    show-sql: false          # Cambiar a true para ver SQLs en consola
+    properties:
+      hibernate:
+        default_schema: ${DB_SCHEMA:ccdiad}
+        format_sql: true     # SQLs formateados cuando show-sql=true
+        jdbc:
+          time_zone: America/Mexico_City
+    open-in-view: false
+
+# ============================================================================
+# LOGGING - Más verboso en dev para depurar
+# ============================================================================
+logging:
+  level:
+    root: WARN
+    com.reservas: DEBUG       # Ver todos los logs de la app
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN   # Cambiar a DEBUG para ver queries
+
+# ============================================================================
+# RATE LIMITING - Deshabilitado en dev para no bloquear pruebas
+# ============================================================================
+rate:
+  limit:
+    enabled: false
+
+# ============================================================================
+# COOKIE - HTTP local, SameSite Strict (mismo origen en dev via proxy Vite)
+# ============================================================================
+app:
+  cookie:
+    secure: false             # HTTP en localhost
+    same-site: Strict         # Funciona porque Vite proxea /api al backend
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:5173}
+    extra-origins: ${FRONTEND_EXTRA_ORIGINS:http://localhost:5174}
+
+frontend:
+  url: ${FRONTEND_URL:http://localhost:5173}
+
+# ============================================================================
+# JWT - Secret local (NO usar en producción)
+# ============================================================================
+jwt:
+  secret: ${JWT_SECRET:1aebff24e5e9403c0ce48178963c7323e5cfd3857876f5c943ad7785f34c4b21bc4b59821634795a64f6fa7dacd462fd1491181a462993223cd4c93e60e52bc3}
+  expiration: 604800000
+  refresh-expiration: 2592000000
+
+# ============================================================================
+# GOOGLE OAUTH2
+# ============================================================================
+google:
+  client:
+    id: ${GOOGLE_CLIENT_ID:959341914970-esbnod0d1mhg4u1m8cae5q0g8knepnmv.apps.googleusercontent.com}
+
+# ============================================================================
+# STRIPE - Usar claves TEST en desarrollo (sk_test_... / pk_test_...)
+# ============================================================================
+stripe:
+  secret:
+    key: ${STRIPE_SECRET_KEY:}
+  api:
+    key: ${STRIPE_API_KEY:}
+  webhook:
+    secret: ${STRIPE_WEBHOOK_SECRET:}
+  success:
+    url: http://localhost:5173/payment/success
+  cancel:
+    url: http://localhost:5173/payment/cancel
+  price:
+    basico: ${STRIPE_PRICE_BASICO:price_1Sxa1bCJJfBmj7w4e7MTljm6}
+    profesional: ${STRIPE_PRICE_PROFESIONAL:price_1Sxa2HCJJfBmj7w48rjQIY2N}
+    premium: ${STRIPE_PRICE_PREMIUM:price_1Sxa2zCJJfBmj7w4aqqXGc68}
+
+# ============================================================================
+# RESEND - Email (mismo que prod por ahora)
+# ============================================================================
+resend:
+  api:
+    key: ${RESEND_API_KEY:re_4pi5pRB6_DpjwV6nQ4T3VRXd4aMJnjxq4}
+  from:
+    email: ${RESEND_FROM_EMAIL:info@citaclick.com.mx}
+    name: ${RESEND_FROM_NAME:Cita Click Dev}
+  templates:
+    verificacion-correo:      ${RESEND_TEMPLATE_VERIFICACION:verificacin-correo-electrnico}
+    recordatorio-clasico:     ${RESEND_TEMPLATE_RECORDATORIO_CLASICO:recordatorio-clasico}
+    recordatorio-moderno:     ${RESEND_TEMPLATE_RECORDATORIO_MODERNO:recordatorio-moderno}
+    recordatorio-minimalista: ${RESEND_TEMPLATE_RECORDATORIO_MINIMALISTA:recordatorio-minimalista}
+
+# ============================================================================
+# GCP - Vacío en dev (no se usa storage local)
+# ============================================================================
+gcp:
+  project:
+    id: ${GCP_PROJECT_ID:}
+  bucket:
+    name: ${GCP_BUCKET_NAME:}
+
+# ============================================================================
+# TWILIO - Deshabilitado en dev
+# ============================================================================
+twilio:
+  account:
+    sid: ${TWILIO_ACCOUNT_SID:}
+  auth:
+    token: ${TWILIO_AUTH_TOKEN:}
+  phone:
+    number: ${TWILIO_PHONE_NUMBER:}
+  whatsapp:
+    from: ${TWILIO_WHATSAPP_NUMBER:}
+    number: ${TWILIO_WHATSAPP_NUMBER:}
+
+# ============================================================================
+# SWAGGER / SPRINGDOC - Habilitado en dev
+# URL: http://localhost:8080/api/swagger-ui.html
+# ============================================================================
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+# ============================================================================
+# ACTUATOR
+# ============================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env
+  endpoint:
+    health:
+      show-details: always
+  health:
+    db:
+      enabled: true
