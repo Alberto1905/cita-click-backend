@@ -14,8 +14,8 @@ spring:
   # Schema: ccdiaq (cita-click-qa)
   # ============================================================================
   datasource:
-    url: ${DATABASE_URL}
-    username: ${DB_USER}
+    url: ${DATABASE_URL:jdbc:postgresql://db-citaclick-do-user-31752426-0.j.db.ondigitalocean.com:25060/defaultdb?currentSchema=ccdiaq&sslmode=require}
+    username: ${DB_USER:MXCCQSAAS}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
@@ -78,7 +78,7 @@ jwt:
 # ============================================================================
 google:
   client:
-    id: ${GOOGLE_CLIENT_ID}
+    id: ${GOOGLE_CLIENT_ID:959341914970-esbnod0d1mhg4u1m8cae5q0g8knepnmv.apps.googleusercontent.com}
 
 # ============================================================================
 # STRIPE - Usar SIEMPRE claves TEST en QA (sk_test_... / pk_test_...)
